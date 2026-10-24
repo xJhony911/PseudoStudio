@@ -1,0 +1,40 @@
+name: Import verified source
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/import-source.yml']
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.repository == 'xJhony911/PseudoStudio'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and extract release source
+        shell: bash
+        run: |
+          echo '6fe809118ee1aeb10652ca56769245919c0f9fe9299e69da122a701eda25376f  PseudoStudio-0.3.0-source.zip' | sha256sum --check
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          with zipfile.ZipFile('PseudoStudio-0.3.0-source.zip') as z:
+              for entry in z.infolist():
+                  path = Path(entry.filename)
+                  assert path.parts[0] == 'PseudoStudio' and '..' not in path.parts
+                  target = Path(*path.parts[1:])
+                  if entry.is_dir():
+                      target.mkdir(parents=True, exist_ok=True)
+                  else:
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      target.write_bytes(z.read(entry))
+          PY
+      - name: Commit complete project and remove importer
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/import-source.yml
+          git add .
+          git commit -m 'Import complete PseudoStudio 0.3.0 source and licenses'
+          git push
