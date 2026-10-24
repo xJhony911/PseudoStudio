@@ -1,0 +1,64 @@
+name: Build Windows
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - name: Dependencies
+        run: npm ci
+      - name: Electron runtime
+        run: node node_modules/electron/install.js
+      - name: Download verified compiler
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'w64devkit.7z.exe'
+          Invoke-WebRequest 'https://github.com/skeeto/w64devkit/releases/download/v2.10.1/w64devkit-x64-2.10.1.7z.exe' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLower() -ne 'add1edf984ce4d473cfeb7c52e0ab38db73a855bba6c7f564d5e16648eb2896a') { throw 'Toolchain checksum mismatch' }
+          & 7z x $archive "-o$env:RUNNER_TEMP/toolchain" -y
+          & ./scripts/build-engine.ps1 -Compiler "$env:RUNNER_TEMP/toolchain/w64devkit/bin/g++.exe"
+          & ./scripts/build-exporter.ps1 -Compiler "$env:RUNNER_TEMP/toolchain/w64devkit/bin/g++.exe"
+      - name: Engine and extension tests
+        run: npm test
+      - name: Build renderer
+        run: npm run build
+      - name: Desktop integration tests
+        run: npm run test:ui
+      - name: Project explorer tests
+        run: npm run test:project
+      - name: Explorer regression tests
+        run: npm run test:explorer
+      - name: Layout tests
+        run: npm run test:layout
+      - name: Diagram and export integration tests
+        run: npm run test:diagrams
+      - name: Package Windows ZIP
+        run: npx electron-builder --win zip --x64
+      - name: Verify packaged executable
+        run: npm run test:packaged
+      - name: Source archive
+        shell: pwsh
+        run: |
+          git archive --format=zip --output=release/PseudoStudio-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PseudoStudio-Windows-x64
+          path: |
+            release/*Windows*.zip
+            release/*source.zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-test-screenshots
+          path: test-results/*.png
