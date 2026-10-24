@@ -23,18 +23,19 @@ jobs:
                   path = Path(entry.filename)
                   assert path.parts[0] == 'PseudoStudio' and '..' not in path.parts
                   target = Path(*path.parts[1:])
+                  if target.parts[0] == '.github':
+                      continue
                   if entry.is_dir():
                       target.mkdir(parents=True, exist_ok=True)
                   else:
                       target.parent.mkdir(parents=True, exist_ok=True)
                       target.write_bytes(z.read(entry))
           PY
-      - name: Commit complete project and remove importer
+      - name: Commit project sources
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/import-source.yml
           git add .
-          git commit -m 'Import complete PseudoStudio 0.3.0 source and licenses'
+          git commit --quiet -m 'Import PseudoStudio 0.3.0 sources and licenses'
           git push
