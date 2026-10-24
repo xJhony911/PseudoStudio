@@ -1,0 +1,5 @@
+{
+  "id": "community.ocean", "name": "Océano", "version": "1.0.0", "author": "Comunidad", "description": "Ejemplo instalable: tema azul profundo y un snippet de bienvenida.",
+  "themes": [{ "id": "ocean", "name": "Océano", "base": "vs-dark", "colors": { "editor.background": "#10212b", "editor.foreground": "#d6edf5", "editorCursor.foreground": "#5ad9c0" }, "rules": [{ "token": "keyword", "foreground": "6fbedf" }, { "token": "string", "foreground": "9edb99" }] }],
+  "snippets": [{ "prefix": "hola-oceano", "body": "Escribir \"Hola, océano\"", "description": "Saludo desde una extensión" }]
+}

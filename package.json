@@ -1,0 +1,72 @@
+{
+  "name": "pseudostudio",
+  "version": "0.3.0",
+  "description": "IDE de pseudocódigo personalizable con el motor real de PSeInt",
+  "private": true,
+  "type": "module",
+  "license": "GPL-2.0-only",
+  "author": "PseudoStudio contributors",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "start": "electron .",
+    "build": "vite build",
+    "test": "node --test tests/*.test.cjs",
+    "test:project": "node scripts/test-project.cjs",
+    "test:ui": "node scripts/test-ui.cjs",
+    "dist": "npm run build && electron-builder --win zip --x64",
+    "engine:build": "powershell -ExecutionPolicy Bypass -File scripts/build-engine.ps1",
+    "test:packaged": "node scripts/test-packaged.cjs",
+    "test:explorer": "node scripts/test-explorer-regressions.cjs",
+    "test:layout": "node scripts/test-layout.cjs",
+    "test:diagrams": "node scripts/test-diagrams.cjs",
+    "exporter:build": "powershell -ExecutionPolicy Bypass -File scripts/build-exporter.ps1"
+  },
+  "devDependencies": {
+    "lucide": "^0.468.0",
+    "monaco-editor": "^0.52.2",
+    "electron": "^42.0.0",
+    "electron-builder": "^26.0.12",
+    "vite": "^7.3.1",
+    "@playwright/test": "^1.58.0"
+  },
+  "build": {
+    "appId": "org.pseudostudio.desktop",
+    "productName": "PseudoStudio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "licenses/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "engine",
+        "to": "engine"
+      },
+      {
+        "from": "extensions",
+        "to": "extensions"
+      },
+      {
+        "from": "vendor/pseint",
+        "to": "source/pseint"
+      }
+    ],
+    "win": {
+      "target": "zip",
+      "icon": "build/icon.ico",
+      "signExecutable": false
+    },
+    "artifactName": "PseudoStudio-${version}-Windows-x64.${ext}"
+  }
+}

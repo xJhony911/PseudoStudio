@@ -1,0 +1,16 @@
+{
+  "id": "pseudostudio.basics", "name": "PSeInt Essentials", "version": "1.0.0", "author": "PseudoStudio", "description": "Estructuras listas para completar. Escribe si, para o algoritmo y elige la plantilla.",
+  "themes": [],
+  "snippets": [
+    { "prefix": "algoritmo", "body": "Algoritmo ${1:MiAlgoritmo}\n\t${0}\nFinAlgoritmo", "description": "Nuevo algoritmo" },
+    { "prefix": "si", "body": "Si ${1:condicion} Entonces\n\t${2}\nFinSi", "description": "Condición Si" },
+    { "prefix": "sino", "body": "Si ${1:condicion} Entonces\n\t${2}\nSiNo\n\t${3}\nFinSi", "description": "Condición con alternativa" },
+    { "prefix": "para", "body": "Para ${1:i} <- ${2:1} Hasta ${3:10} Hacer\n\t${0}\nFinPara", "description": "Bucle con contador" },
+    { "prefix": "mientras", "body": "Mientras ${1:condicion} Hacer\n\t${0}\nFinMientras", "description": "Bucle Mientras" },
+    { "prefix": "repetir", "body": "Repetir\n\t${1}\nHasta Que ${2:condicion}", "description": "Bucle Repetir" },
+    { "prefix": "segun", "body": "Segun ${1:opcion} Hacer\n\t${2:1}:\n\t\t${3}\n\tDe Otro Modo:\n\t\t${4}\nFinSegun", "description": "Selección múltiple" },
+    { "prefix": "funcion", "body": "Funcion ${1:resultado} <- ${2:Nombre}(${3:parametro})\n\tDefinir ${1:resultado} Como Real\n\t${0}\nFinFuncion", "description": "Función con retorno" },
+    { "prefix": "definir", "body": "Definir ${1:variable} Como ${2|Entero,Real,Logico,Caracter|}", "description": "Declarar variable" },
+    { "prefix": "escribir", "body": "Escribir \"${1:mensaje}\"", "description": "Salida a la terminal" }
+  ]
+}

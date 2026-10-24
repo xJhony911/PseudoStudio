@@ -1,0 +1,7 @@
+* text=auto eol=lf
+vendor/pseint/** -text
+*.exe binary
+*.ico binary
+*.png binary
+*.ttf binary
+*.woff2 binary
