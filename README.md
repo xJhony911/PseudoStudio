@@ -4,7 +4,7 @@ Un IDE de pseudocódigo para Windows con el **motor real de PSeInt**, un editor 
 
 <p align="center"><img src="public/logo.svg" width="120" alt="PseudoStudio" /></p>
 
-**Versión 0.4.0 · Windows x64.** Proyecto independiente, sin afiliación oficial con PSeInt.
+**Versión 1.0.0 Oficial · Windows x64.** Proyecto independiente, sin afiliación oficial con PSeInt.
 
 ![Editor con Comic Mono](docs/screenshots/editor.png)
 
@@ -12,8 +12,8 @@ Un IDE de pseudocódigo para Windows con el **motor real de PSeInt**, un editor 
 
 ## Instalación y ejecución
 
-- **Instalador recomendado:** Descarga y ejecuta `PseudoStudio-0.4.0-Windows-x64.exe` para instalar PseudoStudio en tu equipo con accesos directos automáticos.
-- **Versión portable:** Descarga `PseudoStudio-0.4.0-Windows-x64.zip`, extrae **todo** el archivo en una carpeta permanente y abre `PseudoStudio.exe` dentro de ella. Conserva `resources` y el resto de archivos junto al ejecutable. No necesita instalar Node.js, PSeInt ni un compilador.
+- **Instalador recomendado:** Descarga y ejecuta `PseudoStudio-1.0.0-Windows-x64.exe` para instalar PseudoStudio en tu equipo con accesos directos automáticos.
+- **Versión portable:** Descarga `PseudoStudio-1.0.0-Windows-x64.zip`, extrae **todo** el archivo en una carpeta permanente y abre `PseudoStudio.exe` dentro de ella. Conserva `resources` y el resto de archivos junto al ejecutable. No necesita instalar Node.js, PSeInt ni un compilador.
 
 1. Edita el ejemplo inicial o abre un archivo `.psc`.
 2. Presiona **F5** para ejecutar. Cuando el algoritmo use `Leer`, introduce el valor en la terminal.
@@ -30,16 +30,22 @@ Opcionalmente, la variable de entorno `PSEUDOSTUDIO_DATA_DIR` permite elegir otr
 - Motor PSeInt compilado desde sus fuentes originales, con perfiles Flexible y Estricto.
 - Terminal interactiva, comprobación de sintaxis y marcadores de errores.
 - Depuración paso a paso, continuar, pausar y observación de variables declaradas.
-- Editor Monaco: resaltado, autocompletado de palabras, símbolos del archivo y snippets, ayuda al pasar el cursor, ir a declaración, búsqueda, reemplazo, plegado y formato básico.
+- Editor Monaco: resaltado, autocompletado de palabras, símbolos del archivo y snippets, ayuda al pasar el cursor, ir a declaración, búsqueda, reemplazo, plegado y formato.
+- Atajos de teclado profesionales estilo Visual Studio Code (`Alt + ↑/↓`, `Shift + Alt + ↑/↓`, `Ctrl + Shift + K`, `Alt + Z`, `Ctrl + D`, zoom y más).
+- Panel de 9 Comandos PSeInt oficiales arrastrables (drag & drop) al editor y al flujograma, con plantillas completas y modo alternativo con Shift.
+- Flujograma interactivo (clásico y Nassi-Shneiderman) con programación desde el diagrama, inserción rápida y navegación al código con un clic.
+- Aula en Vivo (Live Share): modo espectador para clases con más de 50 estudiantes simultáneos, código numérico de 6 dígitos, código QR y terminal sincronizada limpia.
+- Tres interfaces visuales (Skins): Moderna Studio, Clásica PSeInt fiel al original y Clásica Studio.
+- Sistema Multiventana MDI con ventanas flotantes independientes para terminal y diagrama de flujo.
 - Temas Obsidiana, Monokai, Drácula, Nord y Papel; color de acento configurable.
 - Comic Mono incluida; importación de fuentes TTF, OTF y WOFF2. Tamaño, interlineado, minimapa, ligaduras y tabulación configurables.
-- Extensiones **declarativas** de temas y snippets: instalar desde JSON, activar y desactivar.
+- Catálogo de extensiones bajo demanda: instalación de temas, snippets y extensión oficial de Discord Rich Presence.
 - Asistente de IA opcional con API compatible con Chat Completions; permite un servidor local o un proveedor HTTPS. La clave se cifra con `safeStorage` de Electron en Windows.
-- Seis ejemplos educativos y paleta de comandos.
+- Seis ejemplos educativos, guía interactiva de inicio y paleta de comandos.
 
 ## Alcance de esta versión
 
-La ejecución utiliza PSeInt, pero esta aplicación **no reproduce toda la interfaz original**. No incluye edición gráfica bidireccional de diagramas, breakpoints, inspección completa de arreglos/pila ni evaluación de ejercicios. El autocompletado de símbolos es por archivo: no es un servidor de lenguaje con resolución semántica de ámbitos. El formateador ajusta sangría, no reescribe expresiones.
+La ejecución utiliza el motor real de PSeInt. Esta versión 1.0 incluye diagramas interactivos, comandos arrastrables, multiventana flotante y aula en vivo. El autocompletado de símbolos es por archivo: no es un servidor de lenguaje con resolución semántica de ámbitos. El formateador ajusta sangría, no reescribe expresiones complejas.
 
 Las extensiones de VS Code (`.vsix`) no son compatibles. Los complementos de PseudoStudio contribuyen temas y snippets; no ejecutan JavaScript arbitrario. El asistente no completa automáticamente mientras escribes ni modifica el archivo: responde cuando envías una consulta.
 
@@ -132,7 +138,7 @@ En **Vista** puedes mostrar u ocultar explorador, terminal y asistente, mover el
 - Las cabeceras Proyecto, Archivos abiertos y Estructura se contraen con su flecha.
 - **Vista → Restablecer distribución** recupera la disposición inicial.
 
-Se guardan tamaños, posiciones, visibilidad y carpetas expandidas. Ejecutar o solicitar un dato vuelve a mostrar la terminal. La distribución admite paneles acoplados; no incluye ventanas flotantes ni editores divididos en esta versión.
+Se guardan tamaños, posiciones, visibilidad y carpetas expandidas. Ejecutar o solicitar un dato vuelve a mostrar la terminal. Además de paneles acoplados, incluye un sistema multiventana (MDI) para desacoplar la terminal y el diagrama en ventanas flotantes independientes.
 
 `npm run test:explorer` prueba cargas fuera de orden y cambios sin guardar; `npm run test:layout` prueba los controles de distribución. `PSEUDOSTUDIO_TEST_EXE` permite ejecutar estas pruebas y `test:ui`/`test:project` sobre la aplicación empaquetada.
 
@@ -150,7 +156,7 @@ Se guardan tamaños, posiciones, visibilidad y carpetas expandidas. Ejecutar o s
 
 **Exportar** abre una vista previa y permite guardar Python 3, C, C++, C#, Java, JavaScript, HTML+JavaScript, Pascal, PHP, MATLAB/Octave, Visual Basic y QBasic, mediante el exportador original de PSeInt. El resultado no se ejecuta automáticamente. El exportador advierte que ciertas construcciones pueden necesitar adaptación al entorno de destino; prueba el código en su compilador o intérprete.
 
-Esta versión permite visualizar, navegar, depurar y exportar diagramas generados desde el código. No permite modificar el algoritmo arrastrando bloques del diagrama. Nassi–Shneiderman se presenta en bloques estructurados; la edición del programa sigue realizándose en el editor.
+Esta versión permite visualizar, navegar, depurar, exportar y programar directamente desde el flujograma: incluye inserción rápida con la barra superior de bloques y drag & drop interactivo de comandos sobre el diagrama con detección de proximidad. Nassi–Shneiderman se presenta en bloques estructurados navegables.
 
 Pruebas adicionales: `npm run test:diagrams`. Para recompilar el exportador:
 

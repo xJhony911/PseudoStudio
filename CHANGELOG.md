@@ -1,5 +1,23 @@
 # Cambios
 
+## 1.0.0 — 2026-11-08 (Versión Oficial de Lanzamiento)
+
+Primera versión oficial de producción de PseudoStudio para Windows x64. Concluye la fase preview/beta consolidando un entorno de pseudocódigo moderno, completo, ergonómico y fiel al motor original de PSeInt.
+
+- **Fin de la fase Preview/Beta**: Eliminación de etiquetas provisionales, estabilidad comprobada con 44/44 pruebas unitarias e interfaz lista para estudiantes y docentes.
+- **Barra de herramientas compacta y ergonómica**: Barra unificada de 40px sin recortes visuales ni botones redundantes, con acceso directo a nuevo, abrir, carpeta, guardar, diagrama, exportar, comandos, aula en vivo, vista, formatear, depurar y ejecutar F5.
+- **Módulos de comandos arrastrables de PSeInt**: Panel lateral con los 9 comandos oficiales (Escribir, Leer, Asignar, Si-Entonces, Según, Mientras, Repetir, Para y Función) con vista previa gráfica de alta resolución, inserción por clic o arrastre (drag & drop) al editor y al flujograma.
+- **Flujograma interactivo bidireccional**: Visualización en diagrama clásico o Nassi-Shneiderman, programación directa desde el diagrama mediante barra de comandos rápida, drag & drop de nodos con proximidad esmeralda, y navegación instantánea al código fuente con un clic.
+- **Aula en Vivo (Live Share para clases)**: Transmisión en tiempo real a más de 50 estudiantes simultáneos mediante PeerJS seguro, código numérico de 6 dígitos o código QR, terminal sincronizada sin secuencias ANSI corruptas, cursor del profesor en vivo y opción de descarga local en la carpeta Documentos.
+- **Tres experiencias visuales (Skins)**:
+  - *Moderna Studio*: Inspirada en Visual Studio Code, oscura, fluida y con máxima área de edición.
+  - *Clásica PSeInt Original*: Recreación fiel de la interfaz tradicional de PSeInt con paleta gris, biseles y botones 3D.
+  - *Clásica Studio*: La estética original de versiones previas de PseudoStudio.
+- **Sistema Multiventana Independiente (MDI)**: Posibilidad de desacoplar la terminal o el diagrama de flujo a ventanas flotantes arrastrables, redimensionables en 8 direcciones y minimizables a una barra de tareas integrada.
+- **Atajos de teclado profesionales estilo VS Code**: Mover líneas o bloques (`Alt + ↑/↓`), duplicar líneas (`Shift + Alt + ↑/↓`), eliminar línea (`Ctrl + Shift + K`), multicursor (`Ctrl + D` y `Ctrl + Alt + ↑/↓`), ajuste de línea (`Alt + Z`), formateo (`Shift + Alt + F`), paleta de comandos (`Ctrl + Shift + P`) y zoom (`Ctrl + +/-`).
+- **Catálogo de Extensiones**: Módulo de extensiones bajo demanda para temas, snippets y la integración oficial de **Discord Rich Presence**.
+- **Inicio limpio y sin fricción**: Apertura directa en un algoritmo en blanco (`sin_titulo.psc`) junto a una guía de inicio interactiva (`Guia_PseudoStudio.psc`), sin modales intrusivos en el primer arranque.
+
 ## 0.4.0 — 2026-11-08
 
 - Barra superior unificada y compacta (42px): eliminación de la doble barra redundante, buscador de comandos condensado en icono de lupa y barra de herramientas agrupada junto al logo para maximizar el área vertical de programación.
