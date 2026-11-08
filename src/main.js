@@ -62,15 +62,21 @@ const sectionState = readStore('explorerSections', { project: true, files: true,
 const pathKey = value => String(value || '').replace(/\\/g, '/').toLowerCase();
 
 function applySections() {
-  for (const [name, content] of [['project','project-tree'], ['files','file-list'], ['outline','outline']]) {
-    $(name + '-toggle').setAttribute('aria-expanded', String(sectionState[name] !== false));
-    $(content).classList.toggle('hidden', sectionState[name] === false);
+  for (const [name, content] of [['project','project-tree'], ['outline','outline']]) {
+    if ($(name + '-toggle') && $(content)) {
+      $(name + '-toggle').setAttribute('aria-expanded', String(sectionState[name] !== false));
+      $(content).classList.toggle('hidden', sectionState[name] === false);
+    }
   }
 }
-for (const name of ['project', 'files', 'outline']) $(name + '-toggle').onclick = () => {
-  sectionState[name] = sectionState[name] === false;
-  localStorage.setItem('explorerSections', JSON.stringify(sectionState)); applySections();
-};
+for (const name of ['project', 'outline']) {
+  if ($(name + '-toggle')) {
+    $(name + '-toggle').onclick = () => {
+      sectionState[name] = sectionState[name] === false;
+      localStorage.setItem('explorerSections', JSON.stringify(sectionState)); applySections();
+    };
+  }
+}
 function persistProjectTree() {
   if (project) localStorage.setItem('projectTree', JSON.stringify({ path:project.path, expanded:[...expandedFolders], selected:selectedFolder }));
 }
@@ -95,7 +101,14 @@ function toast(message, error = false) {
 const safe = fn => (...args) => Promise.resolve().then(() => fn(...args)).catch(err => toast(err.message, true));
 function persistSettings() { try { localStorage.setItem('settings', JSON.stringify(settings)); } catch { toast('No se pudieron guardar los ajustes locales.', true); } }
 function persistDrafts() {
-  try { localStorage.setItem('drafts', JSON.stringify({ active: current?.id, files: documents.map(d => ({ id: d.id, name: d.name, path: d.path, content: d.model.getValue(), savedContent: d.savedContent, pristine: d.pristine })) })); }
+  try {
+    const filesToSave = documents.filter(d => !d.isLiveSession).map(d => ({
+      id: d.id, name: d.name, path: d.path, content: d.model.getValue(),
+      savedContent: d.savedContent, pristine: d.pristine
+    }));
+    const activeId = (current && !current.isLiveSession) ? current.id : filesToSave[0]?.id;
+    localStorage.setItem('drafts', JSON.stringify({ active: activeId, files: filesToSave }));
+  }
   catch { toast('No hay espacio para recuperar todos los borradores. Guarda tus archivos.', true); }
 }
 
@@ -177,25 +190,40 @@ const commandsManager = createCommandsManager({
   toast
 });
 
+let liveSessionDoc = null;
+
 const liveManager = createLiveManager({
   editor,
   getCurrentDoc: () => current ? { id: current.id, name: current.name, content: current.model.getValue() } : null,
   onRemoteCode: (fileName, code, isReadOnly) => {
-    if (current) {
-      if (fileName && current.name !== fileName) {
-        current.name = fileName;
+    if (liveSessionDoc && !liveSessionDoc.model.isDisposed()) {
+      if (fileName && liveSessionDoc.name !== fileName) {
+        liveSessionDoc.name = fileName;
         $('breadcrumb-file').textContent = fileName;
       }
-      current.model.setValue(code);
+      liveSessionDoc.model.setValue(code);
+      if (current !== liveSessionDoc) activate(liveSessionDoc);
+    } else {
+      liveSessionDoc = newDocument({
+        name: fileName || 'algoritmo_en_vivo.psc',
+        content: code,
+        pristine: true
+      });
+      liveSessionDoc.isLiveSession = true;
     }
     editor.updateOptions({ readOnly: isReadOnly });
+    renderFiles();
   },
   onRemoteTerminal: (chunk, replace) => {
     showPanel('console');
+    const clean = String(chunk || '')
+      .replace(/\x1b\[z[a-zA-Z0-9]*/gi, '')
+      .replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '')
+      .replace(/\x1b/g, '');
     if (replace) {
-      $('console-output').textContent = chunk;
+      $('console-output').textContent = clean;
     } else {
-      appendOutput(chunk);
+      appendOutput(clean, true /* isRemote */);
     }
   },
   onRemoteTerminalState: (st) => {
@@ -203,6 +231,48 @@ const liveManager = createLiveManager({
       $('run-state').innerHTML = '<span class="tiny-dot"></span>' + (st.debug ? 'Profesor depurando' : 'Profesor ejecutando');
     } else {
       $('run-state').textContent = 'Listo para ejecutar';
+    }
+  },
+  onSaveCopy: async () => {
+    if (liveSessionDoc && current === liveSessionDoc) {
+      const code = liveSessionDoc.model.getValue();
+      const res = await api.save({ saveAs: true, name: liveSessionDoc.name, content: code });
+      if (res) {
+        liveSessionDoc.path = res.path;
+        liveSessionDoc.name = res.name;
+        liveSessionDoc.isLiveSession = false;
+        persistDrafts();
+        renderFiles();
+        toast(`Algoritmo guardado en «${res.path}».`);
+      }
+    } else if (current) {
+      saveFile(true);
+    }
+  },
+  onSessionEnd: async ({ isHostEnded }) => {
+    if (liveSessionDoc && !liveSessionDoc.model.isDisposed()) {
+      const docToHandle = liveSessionDoc;
+      liveSessionDoc = null;
+      const shouldSave = await api.confirm(
+        isHostEnded
+          ? 'La sesión en vivo ha finalizado por el profesor. ¿Deseas guardar una copia del algoritmo en tu computadora (Documentos)?'
+          : 'Te has desconectado de la sesión en vivo. ¿Deseas guardar una copia del algoritmo en tu computadora (Documentos)?'
+      );
+      if (shouldSave) {
+        const code = docToHandle.model.getValue();
+        const res = await api.save({ saveAs: true, name: docToHandle.name, content: code });
+        if (res) {
+          docToHandle.path = res.path;
+          docToHandle.name = res.name;
+          docToHandle.isLiveSession = false;
+          persistDrafts();
+          renderFiles();
+          toast(`Copia guardada en «${res.path}».`);
+          return;
+        }
+      }
+      await closeDocument(docToHandle.id);
+      toast('Sesión finalizada. Algoritmo temporal cerrado sin guardar.');
     }
   },
   toast
@@ -289,7 +359,7 @@ function renderFiles() {
   }
 
   $('tabs').innerHTML = tabsHtml;
-  $('file-list').innerHTML = documents.map(d => `<button class="file-item ${d === current ? 'active' : ''}" data-doc="${d.id}">${icon('file-code-2')}${esc(d.name)}${isDirty(d) ? '<span class="dirty">•</span>' : ''}</button>`).join('');
+  if ($('file-list')) $('file-list').innerHTML = documents.map(d => `<button class="file-item ${d === current ? 'active' : ''}" data-doc="${d.id}">${icon('file-code-2')}${esc(d.name)}${isDirty(d) ? '<span class="dirty">•</span>' : ''}</button>`).join('');
   highlightProjectFile();
   refreshIcons();
 }
@@ -336,10 +406,12 @@ async function saveFile(saveAs = false) {
     doc.name = result.name;
     doc.savedContent = content;
     doc.pristine = true;
+    doc.isLiveSession = false;
     renderFiles();
     $('breadcrumb-file').textContent = current.name;
     persistDrafts();
     notifyDiscord(true);
+    liveManager.broadcastSave(doc.name);
     toast('Archivo guardado.');
     if (project) await renderProject();
   }
@@ -496,15 +568,18 @@ async function checkCurrent() {
   finally { checking = false; if (pendingCheck) { pendingCheck = false; scheduleCheck(); } }
 }
 
-function appendOutput(text) {
+function appendOutput(text, isRemote = false) {
+  if (!text) return;
   $('terminal-welcome').classList.add('hidden');
   const node = $('console-output');
   node.textContent = (node.textContent + text).slice(-250_000);
   $('console-panel').scrollTop = $('console-panel').scrollHeight;
+  if (!isRemote) {
+    liveManager.broadcastTerminalChunk(text);
+  }
 }
 
 function consumeOutput(chunk) {
-  liveManager.broadcastTerminalChunk(chunk);
   terminalPending += chunk;
   while (terminalPending.length) {
     const start = terminalPending.indexOf('\x1b');
@@ -1040,7 +1115,11 @@ $('ai-configure').onclick = safe(() => showSettings('ai'));
 $('ai-send').onclick = safe(() => askAI());
 $('ai-cancel').onclick = safe(() => api.cancelAI());
 $('ai-question').onkeydown = event => { if (event.key === 'Enter' && event.ctrlKey) { event.preventDefault(); safe(() => askAI())(); } };
-$('clear-console').onclick = () => { $('console-output').textContent = ''; if (!running) $('terminal-welcome').classList.remove('hidden'); };
+$('clear-console').onclick = () => {
+  $('console-output').textContent = '';
+  if (!running) $('terminal-welcome').classList.remove('hidden');
+  liveManager.broadcastTerminalClear();
+};
 $('input-form').onsubmit = event => { event.preventDefault(); safe(async () => { const text = $('console-input').value; $('input-form').classList.add('hidden'); appendOutput(text + '\n'); $('console-input').value = ''; $('run-state').textContent = debugging ? 'Depurando' : 'Ejecutando'; try { await api.input(text, inputKind); } catch (error) { if (running) { $('input-form').classList.remove('hidden'); $('console-input').value = text; $('console-input').focus(); } throw error; } })(); };
 
 $('profile').onchange = () => {
@@ -1339,7 +1418,7 @@ window.addEventListener('keydown', event => {
   else if (ctrl && key === 'b') action = () => layout.toggle('sidebar');
   else if (ctrl && key === 'j') action = () => layout.toggle('terminal');
   else if (ctrl && event.shiftKey && key === 'm') action = () => layout.focusEditor();
-  else if (ctrl && key === 's') action = () => saveFile(event.shiftKey);
+  else if (ctrl && key === 's') action = () => liveManager.isSpectating() ? saveFile(true) : saveFile(event.shiftKey);
   else if (ctrl && key === 'o') action = event.shiftKey ? openProject : openFiles;
   else if (ctrl && key === 'n') action = () => newDocument();
   else if (ctrl && key === 'k') action = showCommands;
@@ -1368,8 +1447,62 @@ $('example-list').innerHTML = examples.map((e, i) => `<button class="example-car
 
 const drafts = readStore('drafts', { files: [] });
 for (const file of (drafts.files || []).slice(0, 30)) { try { newDocument(file, false); } catch { /* recover valid drafts only */ } }
-if (!documents.length) newDocument({ name: examples[0].name, content: examples[0].code, pristine: true });
-const active = documents.find(d => d.id === drafts.active) || documents[0]; if (active) activate(active);
+if (!documents.length) {
+  const guideCode = `// =======================================================
+//   BIENVENIDO A PSEUDOSTUDIO - GUÍA DE INICIO RÁPIDO
+// =======================================================
+//
+// 1. EJECUTAR TU ALGORITMO:
+//    - Presiona F5 o haz clic en "Ejecutar" en la barra superior.
+//    - Cuando tu código use "Leer", la terminal te solicitará el dato.
+//
+// 2. DEPURAR PASO A PASO:
+//    - Presiona F6 para depurar y F10 para avanzar paso a paso.
+//    - En la pestaña "VARIABLES" verás el estado en tiempo real.
+//
+// 3. COMANDOS ARRASTRABLES DE PSEINT:
+//    - En el panel derecho "COMANDOS" (F4 / Ctrl Alt C) tienes los 9 bloques.
+//    - Haz clic o arrástralos (drag & drop) directamente al editor o al diagrama.
+//    - Mantén pulsada la tecla Shift al insertar para variantes avanzadas (Sin Saltar).
+//
+// 4. DIAGRAMA DE FLUJO INTERACTIVO:
+//    - Presiona F7 o clic en "Diagrama" para ver el flujograma en tiempo real.
+//    - Puedes programar directamente arrastrando comandos al diagrama.
+//    - Haz clic en cualquier bloque del diagrama para ir a su línea de código.
+//
+// 5. AULA EN VIVO (MODO ESPECTADOR):
+//    - Clic en "En Vivo" (Ctrl Alt L) para transmitir sesión a tus alumnos
+//      o unirte con código de 6 dígitos o escaneando el código QR.
+//
+// 6. ATAJOS PROFESIONALES ESTILO VS CODE:
+//    - Alt + ↑ / ↓ : Mover línea o bloque hacia arriba / abajo.
+//    - Shift + Alt + ↑ / ↓ : Duplicar línea hacia arriba / abajo.
+//    - Ctrl + Shift + K : Eliminar línea actual.
+//    - Ctrl + D : Multicursor (seleccionar siguiente coincidencia).
+//    - Alt + Z : Ajuste de línea automático.
+//
+// 7. INTERFACES Y VENTANAS:
+//    - En el menú superior puedes cambiar entre:
+//      "Moderna Studio", "Clásica PSeInt Original" o "Clásica Studio".
+//    - Desacopla la terminal o diagrama arrastrando su cabecera (Ctrl Alt T / D).
+//
+// =======================================================
+
+Algoritmo GuiaInicio
+\tEscribir "¡Hola, bienvenido a PseudoStudio!"
+\tEscribir "Abre la pestaña 'sin_titulo.psc' para comenzar a programar."
+FinAlgoritmo
+`;
+
+  const emptyCode = `Algoritmo SinTitulo
+\t
+FinAlgoritmo
+`;
+
+  newDocument({ name: 'Guia_PseudoStudio.psc', content: guideCode, pristine: true }, false);
+  newDocument({ name: 'sin_titulo.psc', content: emptyCode, pristine: true }, true);
+}
+const active = documents.find(d => d.id === drafts.active) || documents[documents.length - 1] || documents[0]; if (active) activate(active);
 
 applySettings();
 applySections();

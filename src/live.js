@@ -25,6 +25,8 @@ export function createLiveManager({
   onRemoteCode,
   onRemoteTerminal,
   onRemoteTerminalState,
+  onSaveCopy,
+  onSessionEnd,
   toast
 }) {
   const $ = id => document.getElementById(id);
@@ -161,6 +163,7 @@ export function createLiveManager({
           <span class="live-active-code">Sesión: ${state.roomCode}</span>
         </div>
         <div class="live-active-actions">
+          <button id="live-bar-save" class="secondary small" title="Guardar una copia de este algoritmo en tu computadora (Documentos)"><i data-lucide="download"></i>Guardar en PC</button>
           <button id="live-bar-follow" class="secondary small ${state.autoFollow ? 'active' : ''}">
             <i data-lucide="navigation"></i> Seguir cursor: ${state.autoFollow ? 'SÍ' : 'NO'}
           </button>
@@ -168,6 +171,9 @@ export function createLiveManager({
         </div>
       `;
 
+      $('live-bar-save').onclick = () => {
+        if (typeof onSaveCopy === 'function') onSaveCopy();
+      };
       $('live-bar-follow').onclick = () => {
         state.autoFollow = !state.autoFollow;
         updateActiveBar();
@@ -372,11 +378,31 @@ export function createLiveManager({
 
   function broadcast(payload) {
     if (state.role !== 'host') return;
-    viewers.forEach(v => {
+    const deadPeers = [];
+    viewers.forEach((v, id) => {
       if (v.conn && v.conn.open) {
-        try { v.conn.send(payload); } catch {}
+        try {
+          v.conn.send(payload);
+        } catch {
+          deadPeers.push(id);
+        }
+      } else {
+        deadPeers.push(id);
       }
     });
+    if (deadPeers.length > 0) {
+      for (const deadId of deadPeers) viewers.delete(deadId);
+      renderViewersList();
+      updateActiveBar();
+    }
+  }
+
+  function broadcastTerminalClear() {
+    broadcast({ type: 'terminal-clear' });
+  }
+
+  function broadcastSave(fileName) {
+    broadcast({ type: 'host-saved', fileName });
   }
 
   // === SPECTATOR (ESTUDIANTE) ===
@@ -456,35 +482,41 @@ export function createLiveManager({
           if (onRemoteTerminal) {
             onRemoteTerminal(data.chunk, false);
           }
+        } else if (data.type === 'terminal-clear') {
+          if (onRemoteTerminal) {
+            onRemoteTerminal('', true /* replace */);
+          }
+        } else if (data.type === 'host-saved') {
+          toast(`💾 El profesor guardó «${data.fileName || 'el algoritmo'}».`);
         } else if (data.type === 'run-state') {
           if (onRemoteTerminalState) {
             onRemoteTerminalState(data);
           }
         } else if (data.type === 'host-ended' || data.type === 'kicked') {
           toast(data.message || 'La sesión ha finalizado.', true);
-          disconnectSpectator();
+          disconnectSpectator(true);
         }
       });
 
       conn.on('close', () => {
         toast('Conexión con el profesor finalizada.');
-        disconnectSpectator();
+        disconnectSpectator(true);
       });
 
       conn.on('error', err => {
         toast(`Error de conexión: ${err.message}`, true);
-        disconnectSpectator();
+        disconnectSpectator(false);
       });
     });
 
     peer.on('error', err => {
       console.error('Peer error en espectador:', err);
       toast('No se pudo encontrar la sesión con ese código. Verifica que el profesor haya iniciado la transmisión.', true);
-      disconnectSpectator();
+      disconnectSpectator(false);
     });
   }
 
-  function disconnectSpectator() {
+  function disconnectSpectator(isHostEnded = false) {
     if (activeConn) {
       try {
         activeConn.send({ type: 'leave', username: state.username });
@@ -506,9 +538,38 @@ export function createLiveManager({
     if (editor) {
       editor.updateOptions({ readOnly: false });
     }
+
+    if (typeof onSessionEnd === 'function') {
+      onSessionEnd({ isHostEnded });
+    }
   }
 
   // === LISTENERS DEL EDITOR PARA DIFUNDIR CAMBIOS (HOST) ===
+  let cursorThrottleTimer = null;
+  let pendingCursor = null;
+
+  function onCursorChange(position) {
+    if (state.role === 'host') {
+      pendingCursor = {
+        cursor: position,
+        selection: editor ? editor.getSelection() : null
+      };
+      if (!cursorThrottleTimer) {
+        cursorThrottleTimer = setTimeout(() => {
+          cursorThrottleTimer = null;
+          if (pendingCursor && state.role === 'host') {
+            broadcast({
+              type: 'cursor-update',
+              cursor: pendingCursor.cursor,
+              selection: pendingCursor.selection
+            });
+            pendingCursor = null;
+          }
+        }, 50); // 20 fps max: ultra-fluid, zero lag for 50+ spectators
+      }
+    }
+  }
+
   editor.onDidChangeModelContent(() => {
     if (state.role === 'host' && !isReceivingRemoteEdit) {
       const doc = getCurrentDoc();
@@ -524,13 +585,7 @@ export function createLiveManager({
   });
 
   editor.onDidChangeCursorPosition(e => {
-    if (state.role === 'host') {
-      broadcast({
-        type: 'cursor-update',
-        cursor: e.position,
-        selection: editor.getSelection()
-      });
-    }
+    onCursorChange(e.position);
   });
 
   function showLiveDialog(initialTab = 'host') {
@@ -630,11 +685,16 @@ export function createLiveManager({
         broadcast({ type: 'terminal-chunk', chunk });
       }
     },
+    broadcastTerminalClear,
+    broadcastSave,
+    onCursorChange,
     broadcastRunState(runState) {
       if (state.role === 'host') {
         broadcast({ type: 'run-state', ...runState });
       }
     },
+    isSpectating: () => state.role === 'spectator',
+    isHosting: () => state.role === 'host',
     getState() {
       return { ...state, viewersCount: viewers.size };
     }

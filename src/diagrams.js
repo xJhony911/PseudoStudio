@@ -249,6 +249,7 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         insertCommand(id, selectedLine, e.shiftKey);
+        toast(`Instrucción «${cmd.name}» insertada en el diagrama.`);
       });
 
       btn.addEventListener('dragstart', (e) => {
@@ -274,9 +275,15 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
     if (typeof refreshIcons === 'function') refreshIcons();
   }
 
+  let lastTargetNode = null;
+
   function clearDropTargets() {
     $('diagram-canvas')?.classList.remove('diagram-drop-active');
     $('diagram-scroll')?.classList.remove('diagram-drop-active');
+    if (lastTargetNode) {
+      lastTargetNode.classList.remove('drop-target');
+      lastTargetNode = null;
+    }
     document.querySelectorAll('.flow-node.drop-target').forEach(el => el.classList.remove('drop-target'));
   }
 
@@ -293,6 +300,24 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
       return el ? el.closest('[data-source-line]') : null;
     }
 
+    function findClosestNode(e) {
+      const direct = findNode(e);
+      if (direct) return direct;
+      const nodes = Array.from(canvasEl.querySelectorAll('[data-source-line]'));
+      if (!nodes.length) return null;
+      let closest = null, minDiff = Infinity;
+      const clientY = e.clientY;
+      for (const n of nodes) {
+        const rect = n.getBoundingClientRect();
+        const diff = Math.abs(clientY - (rect.top + rect.height / 2));
+        if (diff < minDiff && diff < 90) {
+          minDiff = diff;
+          closest = n;
+        }
+      }
+      return closest;
+    }
+
     scrollEl.addEventListener('dragover', (e) => {
       const hasCmd = e.dataTransfer.types.includes('application/x-pseudostudio-command') || e.dataTransfer.types.includes('text/plain');
       if (!hasCmd) return;
@@ -301,16 +326,16 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
       e.dataTransfer.dropEffect = 'copy';
       scrollEl.classList.add('diagram-drop-active');
 
-      const node = findNode(e);
-      document.querySelectorAll('.flow-node.drop-target').forEach(el => {
-        if (el !== node) el.classList.remove('drop-target');
-      });
-
-      if (node && Number(node.dataset.sourceLine) > 0) {
-        node.classList.add('drop-target');
-        $('flow-status').textContent = `Soltar para insertar comando después de la línea ${node.dataset.sourceLine}…`;
-      } else {
-        $('flow-status').textContent = `Soltar para insertar comando al final del algoritmo…`;
+      const node = findClosestNode(e);
+      if (node !== lastTargetNode) {
+        if (lastTargetNode) lastTargetNode.classList.remove('drop-target');
+        if (node && Number(node.dataset.sourceLine) > 0) {
+          node.classList.add('drop-target');
+          $('flow-status').textContent = `Soltar para insertar comando después de la línea ${node.dataset.sourceLine}…`;
+        } else {
+          $('flow-status').textContent = `Soltar para insertar comando en el algoritmo…`;
+        }
+        lastTargetNode = node;
       }
     });
 
@@ -323,7 +348,7 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
 
     scrollEl.addEventListener('drop', (e) => {
       e.preventDefault();
-      const node = findNode(e);
+      const node = findClosestNode(e);
       const targetLine = node && Number(node.dataset.sourceLine) > 0 ? Number(node.dataset.sourceLine) : null;
       clearDropTargets();
 

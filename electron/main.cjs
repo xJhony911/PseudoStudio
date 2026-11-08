@@ -112,7 +112,12 @@ app.whenReady().then(async () => {
       try { const canonical = await workspace.resolve(path.relative(workspace.root, file)); if (canonical.toLowerCase() === path.resolve(file).toLowerCase()) allowedFiles.add(file); } catch {}
     }
     if (saveAs || !file || !allowedFiles.has(file)) {
-      const result = await dialog.showSaveDialog(win, { title: 'Guardar pseudocódigo', defaultPath: file || path.join(workspace.root || '', path.basename(name || 'algoritmo.psc')), filters: [{ name: 'Pseudocódigo PSeInt', extensions: ['psc'] }] });
+      const defaultDir = workspace.root || app.getPath('documents');
+      const result = await dialog.showSaveDialog(win, {
+        title: 'Guardar pseudocódigo',
+        defaultPath: file || path.join(defaultDir, path.basename(name || 'algoritmo.psc')),
+        filters: [{ name: 'Pseudocódigo PSeInt', extensions: ['psc'] }]
+      });
       if (result.canceled) return null; file = result.filePath;
     }
     // PSeInt's desktop editor uses Latin-1 for .psc files. Reject lossy conversions.

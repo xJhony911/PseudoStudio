@@ -8,26 +8,25 @@
 </head>
 <body>
   <div id="app">
-    <header class="titlebar">
-      <div class="brand"><img class="brand-logo" src="/logo.svg" alt="PseudoStudio" /><b>Pseudo<span>Studio</span></b><span class="preview-badge">PREVIEW</span></div>
-      <button class="command-search" id="command-open"><i data-lucide="search"></i><span>Buscar comandos…</span><kbd>Ctrl Shift P</kbd></button>
-      <div class="window-buttons"><button data-window="minimize" aria-label="Minimizar"><i data-lucide="minus"></i></button><button data-window="maximize" aria-label="Maximizar"><i data-lucide="square"></i></button><button data-window="close" class="close-window" aria-label="Cerrar"><i data-lucide="x"></i></button></div>
-    </header>
-    <nav class="toolbar">
-      <div class="toolbar-left">
-        <button id="new-file"><i data-lucide="file-plus-2"></i>Nuevo</button>
-        <button id="open-file"><i data-lucide="folder-open"></i>Abrir</button>
-        <button id="open-project" title="Abrir carpeta · Ctrl Shift O"><i data-lucide="folder-open"></i>Carpeta</button>
-        <button id="save-file"><i data-lucide="save"></i>Guardar</button>
-        <button id="flow-open" title="Flujograma · F7"><i data-lucide="workflow"></i>Diagrama</button>
-        <button id="export-code" title="Exportar a otro lenguaje"><i data-lucide="file-output"></i>Exportar</button>
-        <button id="commands-toggle" title="Panel de Comandos PSeInt · F4 / Ctrl Alt C"><i data-lucide="blocks"></i>Comandos</button>
-        <button id="live-share-btn" class="live-btn" title="Aula en Vivo (Compartir o Conectar)"><i data-lucide="radio"></i><span>En Vivo</span></button>
-        <button id="layout-open" title="Distribución de paneles"><i data-lucide="panels-top-left"></i>Vista</button>
-        <span class="divider"></span>
-        <button id="format-code" title="Formatear · Shift Alt F"><i data-lucide="list-indent-increase"></i>Formatear</button>
+    <header class="titlebar app-header-compact">
+      <div class="header-left">
+        <div class="brand"><img class="brand-logo" src="/logo.svg" alt="PseudoStudio" /><b>Pseudo<span>Studio</span></b><span class="preview-badge">PREVIEW</span></div>
+        <span class="header-divider"></span>
+        <div class="toolbar-tools">
+          <button id="new-file" title="Nuevo archivo · Ctrl N"><i data-lucide="file-plus-2"></i><span>Nuevo</span></button>
+          <button id="open-file" title="Abrir archivo · Ctrl O"><i data-lucide="folder-open"></i><span>Abrir</span></button>
+          <button id="open-project" title="Abrir carpeta · Ctrl Shift O"><i data-lucide="folder-open"></i><span>Carpeta</span></button>
+          <button id="save-file" title="Guardar archivo · Ctrl S"><i data-lucide="save"></i><span>Guardar</span></button>
+          <button id="flow-open" title="Flujograma · F7"><i data-lucide="workflow"></i><span>Diagrama</span></button>
+          <button id="export-code" title="Exportar a otro lenguaje"><i data-lucide="file-output"></i><span>Exportar</span></button>
+          <button id="commands-toggle" title="Panel de Comandos PSeInt · F4 / Ctrl Alt C"><i data-lucide="blocks"></i><span>Comandos</span></button>
+          <button id="live-share-btn" class="live-btn" title="Aula en Vivo (Compartir o Conectar)"><i data-lucide="radio"></i><span>En Vivo</span></button>
+          <button id="layout-open" title="Distribución de paneles"><i data-lucide="panels-top-left"></i><span>Vista</span></button>
+          <button id="format-code" title="Formatear documento · Shift Alt F"><i data-lucide="list-indent-increase"></i><span>Formatear</span></button>
+        </div>
       </div>
-      <div class="toolbar-right">
+      <div class="header-right">
+        <button class="icon-button command-search-icon" id="command-open" title="Buscar comandos · Ctrl Shift P" aria-label="Buscar comandos"><i data-lucide="search"></i></button>
         <div class="ui-mode-wrap" title="Modo de Interfaz: Moderna / Clásica PSeInt / Clásica Studio">
           <i data-lucide="layout-template"></i>
           <select id="ui-mode-select" aria-label="Modo de interfaz">
@@ -37,11 +36,16 @@
           </select>
         </div>
         <select id="profile" aria-label="Perfil de lenguaje"><option value="Flexible">PSeInt · Flexible</option><option value="Estricto">PSeInt · Estricto</option></select>
-        <button id="debug-run" title="Depurar · F6"><i data-lucide="bug"></i>Depurar</button>
-        <button id="run" class="run-button" title="Ejecutar · F5"><i data-lucide="play"></i>Ejecutar<kbd>F5</kbd></button>
-        <button id="stop" class="danger hidden" title="Detener · Shift F5"><i data-lucide="square"></i>Detener</button>
+        <button id="debug-run" class="icon-text-btn" title="Depurar · F6"><i data-lucide="bug"></i><span>Depurar</span></button>
+        <button id="run" class="run-button" title="Ejecutar · F5"><i data-lucide="play"></i><span>Ejecutar</span><kbd>F5</kbd></button>
+        <button id="stop" class="danger hidden" title="Detener · Shift F5"><i data-lucide="square"></i><span>Detener</span></button>
+        <div class="window-buttons">
+          <button data-window="minimize" aria-label="Minimizar"><i data-lucide="minus"></i></button>
+          <button data-window="maximize" aria-label="Maximizar"><i data-lucide="square"></i></button>
+          <button data-window="close" class="close-window" aria-label="Cerrar"><i data-lucide="x"></i></button>
+        </div>
       </div>
-    </nav>
+    </header>
     <main class="workspace">
       <nav class="activitybar" aria-label="Vistas">
         <button data-view="explorer" class="active" title="Explorador"><i data-lucide="files"></i></button>
@@ -58,8 +62,6 @@
         <section id="explorer-view" class="side-view">
           <div class="project-heading"><button id="project-toggle" aria-expanded="true" aria-controls="project-tree" title="Contraer proyecto"><i data-lucide="chevron-down"></i></button><span id="project-name" title="Seleccionar raíz del proyecto">SIN CARPETA</span><div><button id="project-file" title="Nuevo archivo en el proyecto" aria-label="Nuevo archivo en el proyecto"><i data-lucide="file-plus-2"></i></button><button id="project-folder" title="Nueva carpeta" aria-label="Nueva carpeta"><i data-lucide="folder-plus"></i></button><button id="project-refresh" title="Actualizar proyecto" aria-label="Actualizar proyecto"><i data-lucide="refresh-cw"></i></button><button id="project-close" title="Cerrar carpeta" aria-label="Cerrar carpeta"><i data-lucide="x"></i></button></div></div>
           <div id="project-tree"><button id="project-empty" class="secondary wide">Abrir carpeta…</button></div>
-          <button id="files-toggle" class="side-section section-toggle" aria-expanded="true" aria-controls="file-list"><i data-lucide="chevron-down"></i><span>ARCHIVOS ABIERTOS</span></button>
-          <div id="file-list"></div>
           <button id="outline-toggle" class="side-section section-toggle" aria-expanded="true" aria-controls="outline"><i data-lucide="chevron-down"></i><span>ESTRUCTURA</span></button>
           <div id="outline"></div>
           <div class="sidebar-tip"><span class="tip-dot"></span><b>Un paso a la vez.</b><p>Escribe, ejecuta y observa cómo tus ideas toman forma.</p><button id="tip-examples">Explorar ejemplos <span>↗</span></button></div>

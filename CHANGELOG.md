@@ -1,7 +1,13 @@
 # Cambios
 
-## 0.4.0 — 2026-11-07
+## 0.4.0 — 2026-11-08
 
+- Barra superior unificada y compacta (42px): eliminación de la doble barra redundante, buscador de comandos condensado en icono de lupa y barra de herramientas agrupada junto al logo para maximizar el área vertical de programación.
+- Aula en Vivo para 50+ estudiantes: saneamiento total de secuencias ANSI (`\x1b[zl`/`\x1b[zk]`), sincronización de entradas interactivas `Leer`, throttling de cursor a 20 fps y recolección automática de conexiones inactivas para garantizar fluidez sin tirones.
+- Aislamiento de código de clase: los algoritmos remotos del profesor no persisten en borradores locales del estudiante; opción de guardar copia directa en `Documentos` o cerrar limpiamente.
+- Explorador limpio estilo VS Code: retirada de la lista duplicada de "Archivos Abiertos" del sidebar para centrar la vista en el proyecto y pestañas activas.
+- Pestañas iniciales limpias: apertura predeterminada con algoritmo vacío `sin_titulo.psc` y guía interactiva `Guia_PseudoStudio.psc` sin algoritmos aleatorios residuales.
+- Flujograma fluido y flexible estilo PSeInt: drag & drop de comandos sobre el diagrama con detección inteligente de proximidad vertical y resaltado esmeralda.
 - Módulos de comandos arrastrables de PSeInt: panel lateral con los 9 comandos oficiales (Escribir, Leer, Asignar, Si-Entonces, Según, Mientras, Repetir, Para, Función) con diagramas representativos en alta resolución mediante data URIs base64, inserción rápida por clic, drag & drop al editor y variantes con Shift.
 - Programación interactiva desde el diagrama de flujo: barra superior de inserción rápida para construir código directamente desde el flujograma, hover distintivo y navegación con clic desde bloques al código.
 - Aula en Vivo (Live Share): modo espectador colaborativo para clases de programación con sincronización de código, cursor y ejecución; código numérico único de 6 dígitos, código QR escaneable y lista de estudiantes conectados.
@@ -9,7 +15,7 @@
 - Atajos profesionales de teclado estilo Visual Studio Code: mover líneas o bloques con Alt + ↑/↓, duplicar con Shift + Alt + ↑/↓, eliminar con Ctrl + Shift + K, multicursor con Ctrl + D / Ctrl + Alt + ↑/↓, ajuste de línea con Alt + Z y zoom de fuente con Ctrl + +/-.
 - Tres interfaces / skins intercambiables al instante: Moderna Studio ergonómica, Clásica PSeInt fiel al diseño original wxWidgets con colores y biseles 3D, y Clásica Studio para regresar a la apariencia anterior.
 - Sistema de Ventanas Flotantes Multiventana (MDI): terminal y flujograma desacoplables, arrastre para sacar a ventana independiente (tear-off), redimensión en 8 direcciones, minimizar a barra de tareas integrada y apertura automática en modo clásico PSeInt.
-- Suite de pruebas ampliada a 39 tests automatizados cubriendo comandos, extensiones, aula en vivo, atajos y gestor de ventanas.
+- Suite de pruebas ampliada a 44 tests automatizados cubriendo comandos, extensiones, aula en vivo para 50+ alumnos, terminal limpia, atajos y gestor de ventanas.
 
 ## 0.3.0 — 2026-10-24
 

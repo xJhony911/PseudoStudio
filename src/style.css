@@ -1487,3 +1487,168 @@ body.window-resizing, body.window-resizing * {
   /* Mantiene los valores estándar base de PseudoStudio */
 }
 
+/* =========================================================
+   HEADER COMPACTO UNIFICADO (Barra Ergonómica de Herramientas)
+   ========================================================= */
+.app-header-compact {
+  height: 42px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 14px;
+  -webkit-app-region: drag;
+  background: var(--bg);
+  position: relative;
+  z-index: 50;
+}
+.app-header-compact button,
+.app-header-compact select,
+.app-header-compact .ui-mode-wrap {
+  -webkit-app-region: no-drag;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.header-left .brand {
+  flex-shrink: 0;
+}
+.header-divider {
+  height: 18px;
+  width: 1px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.toolbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.toolbar-tools::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-tools button {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+  border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.toolbar-tools button:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.toolbar-tools button svg {
+  width: 14px;
+  height: 14px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 100%;
+}
+.command-search-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  color: var(--muted);
+}
+.command-search-icon:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.command-search-icon svg {
+  width: 15px;
+  height: 15px;
+}
+.icon-text-btn {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.icon-text-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.header-right select {
+  font-size: 11px;
+  padding: 4px 7px;
+  background: transparent;
+  color: var(--muted);
+}
+
+/* Adaptaciones de skins para header compacto */
+.ui-mode-modern .app-header-compact {
+  background: rgba(22, 24, 34, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.ui-mode-modern .toolbar-tools button {
+  border-radius: 5px;
+  transition: all 0.15s ease;
+}
+.ui-mode-modern .toolbar-tools button:hover {
+  background: rgba(185, 163, 255, 0.12);
+  color: #fff;
+}
+
+.ui-mode-classic-pseint .app-header-compact {
+  background: linear-gradient(180deg, #fbfbf9 0%, #e8e5d8 100%);
+  border-bottom: 1px solid #b8b5a8;
+  color: #1a1a1a;
+}
+.ui-mode-classic-pseint .toolbar-tools button,
+.ui-mode-classic-pseint .icon-text-btn,
+.ui-mode-classic-pseint .command-search-icon {
+  background: linear-gradient(180deg, #ffffff 0%, #ece9d8 100%);
+  border: 1px solid #b8b5a8;
+  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #d0cdc3 inset;
+  color: #1a1a1a;
+  border-radius: 3px;
+  font-size: 11px;
+  padding: 2px 7px;
+  height: 26px;
+}
+.ui-mode-classic-pseint .toolbar-tools button:hover,
+.ui-mode-classic-pseint .icon-text-btn:hover,
+.ui-mode-classic-pseint .command-search-icon:hover {
+  background: #ffffff;
+  border-color: #003399;
+  color: #003399;
+}
+.ui-mode-classic-pseint .header-divider {
+  background: #b8b5a8;
+}
+.ui-mode-classic-pseint .header-right select {
+  background: #ffffff;
+  border: 1px solid #b8b5a8;
+  color: #1a1a1a;
+}
+
+/* Resaltado dinámico al arrastrar comandos en el diagrama de flujo */
+.flow-node.drop-target rect,
+.flow-node.drop-target polygon,
+.flow-node.drop-target path {
+  stroke: #10b981 !important;
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8)) !important;
+  transition: stroke 0.15s ease, filter 0.15s ease;
+}
+.flow-node.drop-target text {
+  fill: #10b981 !important;
+  font-weight: 700 !important;
+}
+
