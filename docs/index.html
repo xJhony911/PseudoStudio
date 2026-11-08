@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO Primary Meta Tags -->
+  <title>PseudoStudio - El IDE Moderno de Pseudocódigo con Motor Real de PSeInt</title>
+  <meta name="title" content="PseudoStudio - El IDE Moderno de Pseudocódigo con Motor Real de PSeInt" />
+  <meta name="description" content="Descarga gratis PseudoStudio para Windows. El entorno de desarrollo de pseudocódigo moderno para estudiantes y profesores: motor nativo de PSeInt, comandos arrastrables, flujogramas interactivos, aula en vivo y atajos estilo VS Code." />
+  <meta name="keywords" content="PSeInt, pseudocodigo, descargar pseint, alternativa pseint, pseint moderno, pseint windows, flujogramas, diagramas de flujo pseint, programacion pseint, pseint visual studio code, aprender a programar" />
+  <meta name="author" content="PseudoStudio" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://xjhony911.github.io/PseudoStudio/" />
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://xjhony911.github.io/PseudoStudio/" />
+  <meta property="og:title" content="PseudoStudio - El IDE Moderno de Pseudocódigo con Motor Real de PSeInt" />
+  <meta property="og:description" content="Aprende y enseña a programar con el motor nativo de PSeInt, comandos arrastrables, aula en vivo y una interfaz ergonómica inspirada en VS Code. Descarga gratis para Windows." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/xJhony911/PseudoStudio/main/docs/screenshots/hero-app.png" />
+
+  <!-- Twitter / Discord Cards -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://xjhony911.github.io/PseudoStudio/" />
+  <meta property="twitter:title" content="PseudoStudio - IDE Moderno de Pseudocódigo" />
+  <meta property="twitter:description" content="Motor nativo de PSeInt, comandos arrastrables, aula en vivo y diagramas de flujo. Gratis para Windows." />
+  <meta property="twitter:image" content="https://raw.githubusercontent.com/xJhony911/PseudoStudio/main/docs/screenshots/hero-app.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+
+  <!-- Google Structured Data (Schema.org) for Software Application -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PseudoStudio",
+    "operatingSystem": "Windows 10, Windows 11 (x64)",
+    "applicationCategory": "DeveloperApplication",
+    "educationalUse": "Enseñanza y aprendizaje de lógica de programación y pseudocódigo",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "IDE de pseudocódigo personalizable con el motor nativo real de PSeInt, comandos arrastrables, diagramas de flujo y aula en vivo.",
+    "softwareVersion": "1.0.0",
+    "downloadUrl": "https://github.com/xJhony911/PseudoStudio/releases/tag/v1.0.0",
+    "author": {
+      "@type": "Person",
+      "name": "PseudoStudio Team"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0b0c13;
+      --surface: #12141f;
+      --surface-card: #181b2a;
+      --border: #25283b;
+      --border-hover: #3b3f5c;
+      --text: #e2e4f0;
+      --text-muted: #8c90aa;
+      --accent: #b9a3ff;
+      --accent-soft: rgba(185, 163, 255, 0.12);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.35);
+      --font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 95, 220, 0.18), transparent),
+        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 40%);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      background: rgba(11, 12, 19, 0.82);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .brand img {
+      width: 38px;
+      height: 38px;
+      filter: drop-shadow(0 2px 8px rgba(185, 163, 255, 0.4));
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .brand-title span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .version-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(185, 163, 255, 0.3);
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 6px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.18s ease;
+    }
+    .nav-links a:hover {
+      color: #ffffff;
+    }
+    .btn-nav-download {
+      background: var(--green);
+      color: #062817 !important;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700 !important;
+      font-size: 13px !important;
+      box-shadow: 0 2px 10px var(--green-glow);
+      transition: transform 0.15s ease, filter 0.15s ease !important;
+    }
+    .btn-nav-download:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .badge-pill .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+    }
+    .badge-pill b {
+      color: #fff;
+    }
+    .hero h1 {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1.2px;
+      max-width: 900px;
+      margin: 0 auto 20px;
+      background: linear-gradient(180deg, #ffffff 30%, #b0b4cf 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p.lead {
+      font-size: 20px;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .btn-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green);
+      color: #052615;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 4px 24px var(--green-glow);
+      transition: all 0.18s ease;
+    }
+    .btn-main:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--green-glow);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.18s ease;
+    }
+    .btn-secondary:hover {
+      background: var(--surface-card);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+    .hero-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Showcase Frame */
+    .showcase {
+      margin-top: 50px;
+      position: relative;
+    }
+    .showcase-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      height: 80%;
+      background: radial-gradient(circle, rgba(185, 163, 255, 0.15) 0%, rgba(16, 185, 129, 0.08) 50%, transparent 70%);
+      filter: blur(50px);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .window-frame {
+      position: relative;
+      z-index: 2;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
+    }
+    .window-header {
+      background: #141624;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .window-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .window-title {
+      margin-left: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .window-frame img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+
+    /* Feature Grid */
+    .features {
+      padding: 100px 0 60px;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 60px;
+    }
+    .section-header .eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .section-header h2 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .section-header p {
+      font-size: 17px;
+      color: var(--text-muted);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      background: var(--surface-card);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(185, 163, 255, 0.3);
+      color: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .card p {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Comparison Table */
+    .comparison {
+      padding: 80px 0;
+      background: rgba(18, 20, 31, 0.6);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 40px;
+    }
+    table.compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    table.compare-table th, table.compare-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    table.compare-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      background: var(--surface);
+    }
+    table.compare-table th.highlight, table.compare-table td.highlight {
+      background: rgba(185, 163, 255, 0.08);
+      color: #ffffff;
+      font-weight: 600;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .check { color: var(--green); font-weight: bold; font-size: 16px; }
+    .cross { color: #f08c9b; font-weight: bold; font-size: 16px; }
+
+    /* Download Banner */
+    .cta-banner {
+      padding: 100px 0;
+      text-align: center;
+      position: relative;
+    }
+    .cta-box {
+      background: linear-gradient(145deg, #181a29 0%, #121422 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 60px 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .cta-box h2 {
+      font-size: 40px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    .cta-box p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+
+    /* Footer */
+    footer.site-footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+    }
+    footer.site-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    footer.site-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 34px; }
+      .hero p.lead { font-size: 16px; }
+      .nav-links { display: none; }
+      .section-header h2 { font-size: 28px; }
+      .cta-box h2 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header & Navigation -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="#" class="brand">
+        <img src="logo.svg" alt="PseudoStudio Logo" />
+        <div class="brand-title">Pseudo<span>Studio</span></div>
+        <span class="version-tag">v1.0.0 Oficial</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#caracteristicas">Características</a></li>
+        <li><a href="#comparativa">Comparativa</a></li>
+        <li><a href="https://github.com/xJhony911/PseudoStudio" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="#descarga" class="btn-nav-download">Descargar Gratis</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="badge-pill">
+        <span class="dot"></span>
+        <span><b>PseudoStudio v1.0.0</b> ya disponible para Windows 10/11</span>
+      </div>
+      <h1>El IDE de Pseudocódigo Moderno con el Motor Real de PSeInt</h1>
+      <p class="lead">
+        Diseñado para estudiantes y docentes: la compatibilidad exacta y matemática de PSeInt con la ergonomía, rapidez y belleza visual de Visual Studio Code.
+      </p>
+
+      <div class="hero-actions" id="descarga">
+        <a href="https://github.com/xJhony911/PseudoStudio/releases/download/v1.0.0/PseudoStudio-1.0.0-Windows-x64.exe" class="btn-main">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar Instalador (.exe)
+        </a>
+        <a href="https://github.com/xJhony911/PseudoStudio/releases/download/v1.0.0/PseudoStudio-1.0.0-Windows-x64.zip" class="btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Versión Portable (.zip)
+        </a>
+        <a href="https://github.com/xJhony911/PseudoStudio" target="_blank" rel="noopener" class="btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          Código Abierto en GitHub
+        </a>
+      </div>
+
+      <p class="hero-meta">Totalmente gratis y Open Source bajo licencia GPL-2.0 · Sin anuncios · Para Windows 64-bit</p>
+
+      <!-- Screenshot Showcase -->
+      <div class="showcase">
+        <div class="showcase-glow"></div>
+        <div class="window-frame">
+          <div class="window-header">
+            <span class="window-dot dot-red"></span>
+            <span class="window-dot dot-yellow"></span>
+            <span class="window-dot dot-green"></span>
+            <span class="window-title">PseudoStudio - [sin_titulo.psc]</span>
+          </div>
+          <img src="screenshots/hero-app.png" alt="Interfaz de PseudoStudio en Windows con Comandos y Editor" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features" id="caracteristicas">
+    <div class="container">
+      <div class="section-header">
+        <span class="eyebrow">Potencia & Ergonomía</span>
+        <h2>Todo lo que necesitas para dominar pseudocódigo</h2>
+        <p>Una herramienta diseñada desde cero para que aprender a programar sea fluido, claro y sin frustraciones técnicas.</p>
+      </div>
+
+      <div class="grid-3">
+        <!-- Feature 1 -->
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Motor Real de PSeInt</h3>
+          <p>Ejecución nativa directa compilada de las fuentes originales de PSeInt. Compatible 100% con perfiles Flexible y Estricto, acentos, Ñ, arreglos y subprocesos.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="card">
+          <div class="card-icon">🖱️</div>
+          <h3>Comandos Arrastrables</h3>
+          <p>Arrastra bloques de código (Escribir, Leer, Si-Entonces, Mientras, Para, etc.) directamente al editor o al diagrama de flujo con guías visuales y detección de proximidad.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Flujogramas Interactivos</h3>
+          <p>Genera diagramas de flujo clásicos o Nassi-Shneiderman. ¡Programa directamente insertando bloques desde el diagrama y haz clic para saltar a la línea de código!</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <h3>Aula en Vivo (Live Share)</h3>
+          <p>El profesor comparte su sesión con más de 50 estudiantes en simultáneo con un código de 6 dígitos o código QR. Los alumnos ven el código y la terminal en tiempo real.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="card">
+          <div class="card-icon">🎨</div>
+          <h3>3 Skins Visuales</h3>
+          <p>Alterna en 1 segundo entre la vista <b>Moderna Studio</b> (estilo VS Code oscuro), la <b>Clásica PSeInt Original</b> (gris tradicional con biseles 3D) o la <b>Clásica Studio</b>.</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="card">
+          <div class="card-icon">🪟</div>
+          <h3>Multiventana Desacoplable (MDI)</h3>
+          <p>Desacopla la terminal interactiva o el diagrama de flujo a ventanas flotantes independientes arrastrándolas fuera de la app, ideal para monitores secundarios.</p>
+        </div>
+
+        <!-- Feature 7 -->
+        <div class="card">
+          <div class="card-icon">⌨️</div>
+          <h3>Atajos de Teclado Profesionales</h3>
+          <p>Mueve líneas con <kbd>Alt+↑/↓</kbd>, duplica código con <kbd>Shift+Alt+↑/↓</kbd>, borra con <kbd>Ctrl+Shift+K</kbd> y edita múltiples líneas a la vez con multicursor.</p>
+        </div>
+
+        <!-- Feature 8 -->
+        <div class="card">
+          <div class="card-icon">🧩</div>
+          <h3>Catálogo de Extensiones</h3>
+          <p>Instala temas personalizados, paquetes de snippets y la extensión oficial de <b>Discord Rich Presence</b> para mostrar tu progreso de programación a tus amigos.</p>
+        </div>
+
+        <!-- Feature 9 -->
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <h3>Inicio Limpio & Sin Lag</h3>
+          <p>Abre directamente en un archivo vacío listo para codificar, con una guía de inicio rápido interactiva y sin pesadas ventanas de registro ni configuraciones molestas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="comparison" id="comparativa">
+    <div class="container">
+      <div class="section-header">
+        <span class="eyebrow">Comparativa Directa</span>
+        <h2>¿Por qué PseudoStudio marca la diferencia?</h2>
+        <p>Una comparativa transparente entre el PSeInt tradicional y PseudoStudio.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Característica</th>
+              <th>PSeInt Original</th>
+              <th class="highlight">PseudoStudio v1.0.0</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Motor de ejecución real de PSeInt</td>
+              <td><span class="check">✓ Sí</span></td>
+              <td class="highlight"><span class="check">✓ Sí (Nativo y optimizado)</span></td>
+            </tr>
+            <tr>
+              <td>Editor Monaco profesional (autocompletado, minimapa, plegado)</td>
+              <td><span class="cross">✕ No (editor básico)</span></td>
+              <td class="highlight"><span class="check">✓ Sí (Motor Monaco VS Code)</span></td>
+            </tr>
+            <tr>
+              <td>Comandos arrastrables (Drag & Drop) al código y al diagrama</td>
+              <td><span class="cross">✕ Solo botones fijos</span></td>
+              <td class="highlight"><span class="check">✓ Sí (9 comandos arrastrables)</span></td>
+            </tr>
+            <tr>
+              <td>Programación directa desde el flujograma</td>
+              <td><span class="cross">✕ No</span></td>
+              <td class="highlight"><span class="check">✓ Sí (Barra rápida + drop interactivo)</span></td>
+            </tr>
+            <tr>
+              <td>Aula en Vivo para 50+ alumnos (P2P + QR)</td>
+              <td><span class="cross">✕ No existe</span></td>
+              <td class="highlight"><span class="check">✓ Sí (Live Share con código y QR)</span></td>
+            </tr>
+            <tr>
+              <td>Atajos modernos de teclado (Alt+flechas, multicursor)</td>
+              <td><span class="cross">✕ Limitado</span></td>
+              <td class="highlight"><span class="check">✓ Idénticos a Visual Studio Code</span></td>
+            </tr>
+            <tr>
+              <td>Temas modernos oscuros y personalización visual</td>
+              <td><span class="cross">✕ Solo interfaz gris de 2012</span></td>
+              <td class="highlight"><span class="check">✓ 5 temas + Skin Clásica opcional</span></td>
+            </tr>
+            <tr>
+              <td>Sistema multiventana desacoplable (MDI)</td>
+              <td><span class="check">✓ Sí</span></td>
+              <td class="highlight"><span class="check">✓ Sí (Terminal y Diagramas flotantes)</span></td>
+            </tr>
+            <tr>
+              <td>Integración con Discord Rich Presence</td>
+              <td><span class="cross">✕ No</span></td>
+              <td class="highlight"><span class="check">✓ Sí (Extensión oficial incluida)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="cta-banner">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Empieza a programar con PseudoStudio hoy</h2>
+        <p>Descarga la versión oficial 1.0.0 gratis para Windows y transforma tu forma de aprender lógica y pseudocódigo.</p>
+        <div class="hero-actions">
+          <a href="https://github.com/xJhony911/PseudoStudio/releases/download/v1.0.0/PseudoStudio-1.0.0-Windows-x64.exe" class="btn-main">
+            Descargar Instalador (.exe)
+          </a>
+          <a href="https://github.com/xJhony911/PseudoStudio/releases/download/v1.0.0/PseudoStudio-1.0.0-Windows-x64.zip" class="btn-secondary">
+            Descargar Portable (.zip)
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>
+        <b>PseudoStudio</b> es un proyecto libre e independiente bajo licencia <a href="https://github.com/xJhony911/PseudoStudio/blob/main/LICENSE" target="_blank">GPL-2.0</a>.
+      </p>
+      <p style="margin-top: 8px;">
+        Desarrollado con el motor original de PSeInt creado por Pablo Novara y colaboradores. 
+        Código disponible en <a href="https://github.com/xJhony911/PseudoStudio" target="_blank">GitHub</a>.
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
