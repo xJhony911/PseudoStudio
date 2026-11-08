@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' wss: https:; object-src 'none'; base-uri 'self'" />
   <title>PseudoStudio</title>
 </head>
 <body>
@@ -22,6 +22,7 @@
         <button id="flow-open" title="Flujograma · F7"><i data-lucide="workflow"></i>Diagrama</button>
         <button id="export-code" title="Exportar a otro lenguaje"><i data-lucide="file-output"></i>Exportar</button>
         <button id="commands-toggle" title="Panel de Comandos PSeInt · F4 / Ctrl Alt C"><i data-lucide="blocks"></i>Comandos</button>
+        <button id="live-share-btn" class="live-btn" title="Aula en Vivo (Compartir o Conectar)"><i data-lucide="radio"></i><span>En Vivo</span></button>
         <button id="layout-open" title="Distribución de paneles"><i data-lucide="panels-top-left"></i>Vista</button>
         <span class="divider"></span>
         <button id="format-code" title="Formatear · Shift Alt F"><i data-lucide="list-indent-increase"></i>Formatear</button>
@@ -69,6 +70,7 @@
             <span id="breadcrumb-symbol-wrap" class="breadcrumb-symbol-wrap hidden"><i data-lucide="chevron-right"></i><span id="breadcrumb-symbol"></span></span>
             <span class="breadcrumb-right"><span class="tiny-dot"></span>Motor PSeInt</span>
           </div>
+          <div id="live-active-bar" class="live-active-bar hidden"></div>
           <div id="editor"></div>
           <section id="diagram-view" class="diagram-view hidden">
             <div class="diagram-toolbar"><button id="flow-code" class="secondary">Volver al código</button><select id="flow-process" aria-label="Proceso del diagrama"></select><select id="flow-style" aria-label="Estilo del diagrama"><option value="classic">Flujograma clásico</option><option value="nassi">Nassi–Shneiderman</option></select><button id="flow-refresh" title="Actualizar diagrama">↻</button><button id="flow-minus" aria-label="Alejar diagrama">−</button><span id="flow-zoom">100%</span><button id="flow-plus" aria-label="Acercar diagrama">+</button><button id="flow-fit">Ajustar ancho</button><button id="flow-fit-all">Ver completo</button><button id="flow-svg">SVG</button><button id="flow-png">PNG</button></div>
@@ -151,13 +153,103 @@
         <label>Espacios en blanco<select id="render-whitespace"><option value="none">Ninguno</option><option value="selection">En selección</option><option value="boundary">Límites</option><option value="all">Siempre visibles</option></select></label>
         <label class="field-label">Ancho de tabulación<select id="tab-size"><option value="2">2 espacios</option><option value="4">4 espacios</option><option value="8">8 espacios</option></select></label>
       </div>
+      <div class="settings-row">
+        <label class="field-label">Tu nombre de usuario para sesiones en vivo
+          <input id="settings-username" placeholder="Tu nombre o rol" maxlength="40" />
+        </label>
+      </div>
       <p class="settings-note">Los atajos Ctrl + y Ctrl - permiten hacer zoom en el editor en cualquier momento. Los cambios se guardan automáticamente.</p>
       <button id="reset-settings" class="secondary">Restablecer apariencia y editor</button>
     </section>
     <section id="settings-ai" class="hidden"><p class="settings-note">Conecta un servidor local (por ejemplo, Ollama) o un proveedor con API compatible con Chat Completions. La IA es opcional; editar y ejecutar funciona sin conexión.</p><label class="field-label">URL base<input id="ai-url" type="url" placeholder="http://127.0.0.1:11434/v1" /></label><label class="field-label">Nombre del modelo<input id="ai-model" placeholder="Modelo disponible en tu proveedor" /></label><label class="field-label">Clave API (opcional para servidores locales)<input id="ai-key" type="password" autocomplete="off" placeholder="Se almacena cifrada en Windows" /></label><label class="check-label"><input id="ai-clear-key" type="checkbox" />Eliminar la clave guardada</label><button id="save-ai" class="accent-button">Guardar conexión</button><span id="ai-settings-state" class="muted"></span></section>
   </div><div class="dialog-footer"><i data-lucide="check"></i>Los ajustes visuales se guardan automáticamente.<button data-close="settings-dialog" class="secondary">Listo</button></div></dialog>
+
+  <!-- Diálogo de Aula en Vivo / Live Share -->
+  <dialog id="live-dialog" class="live-dialog">
+    <div class="dialog-header">
+      <div class="live-dialog-brand">
+        <span class="live-orb"><i data-lucide="radio"></i></span>
+        <div>
+          <h1>Aula en Vivo · Live Share</h1>
+          <span class="eyebrow">TRANSMISIÓN Y MODO ESPECTADOR EN TIEMPO REAL</span>
+        </div>
+      </div>
+      <button data-close="live-dialog" class="icon-button" aria-label="Cerrar aula en vivo"><i data-lucide="x"></i></button>
+    </div>
+    <div class="live-tabs">
+      <button data-live-tab="host" class="active"><i data-lucide="radio"></i>Transmitir (Profesor)</button>
+      <button data-live-tab="spectator"><i data-lucide="eye"></i>Conectarse (Estudiante)</button>
+    </div>
+    <div class="settings-content">
+      <!-- Tab Profesor -->
+      <section id="live-tab-host">
+        <div id="live-host-setup">
+          <p class="live-intro">Inicia una transmisión para tu clase. Los estudiantes se conectan con el código de 6 dígitos o escaneando el código QR desde cualquier red en su propio PseudoStudio sin retardo de pantalla.</p>
+          <label class="field-label">Tu nombre o rol de profesor
+            <input id="live-host-username" placeholder="Ej: Prof. García" maxlength="40" />
+          </label>
+          <button id="live-start-host-btn" class="accent-button wide"><i data-lucide="radio"></i> Iniciar transmisión en vivo</button>
+        </div>
+        <div id="live-host-active" class="hidden">
+          <div class="live-code-banner">
+            <div>
+              <span class="live-pulse-dot"></span>
+              <span class="live-code-label">CÓDIGO DE SESIÓN</span>
+            </div>
+            <div class="live-room-code-wrap">
+              <span id="live-room-code-display" class="live-room-code">--- ---</span>
+              <button id="live-copy-code-btn" class="secondary" title="Copiar código"><i data-lucide="copy"></i> Copiar</button>
+            </div>
+          </div>
+          <div class="live-qr-container">
+            <img id="live-qr-img" class="live-qr-image" alt="Código QR de la sesión" />
+            <p class="muted">Escanea con tu cámara o ingresa el código numérico en PseudoStudio.</p>
+          </div>
+          <div class="live-viewers-box">
+            <div class="live-viewers-header">
+              <span><i data-lucide="users"></i> Estudiantes conectados (<span id="live-viewers-count">0 espectadores</span>)</span>
+            </div>
+            <div id="live-viewers-list" class="live-viewers-list"></div>
+          </div>
+          <button id="live-stop-host-btn" class="danger wide"><i data-lucide="square"></i> Finalizar transmisión</button>
+        </div>
+      </section>
+
+      <!-- Tab Estudiante -->
+      <section id="live-tab-spectator" class="hidden">
+        <p class="live-intro">Conéctate al aula en vivo de tu profesor en modo espectador para ver su código, selecciones y terminal en tiempo real en tu computadora.</p>
+        <label class="field-label">Tu nombre de estudiante
+          <input id="live-spectator-username" placeholder="Ej: Mateo Álvarez" maxlength="40" />
+        </label>
+        <label class="field-label">Código numérico de sesión (6 dígitos)
+          <input id="live-join-code" placeholder="482-915" maxlength="7" class="code-input" autocomplete="off" />
+        </label>
+        <button id="live-join-spectator-btn" class="accent-button wide"><i data-lucide="log-in"></i> Conectar como espectador</button>
+      </section>
+    </div>
+  </dialog>
+
+  <!-- Diálogo para pedir Username al inicio -->
+  <dialog id="username-dialog" class="username-dialog">
+    <div class="dialog-header">
+      <div>
+        <span class="eyebrow">IDENTIFICACIÓN</span>
+        <h1>¿Cómo te llamas?</h1>
+      </div>
+    </div>
+    <div class="settings-content">
+      <p class="live-intro">Escribe tu nombre o apodo para que el profesor y compañeros puedan identificarte cuando uses el Aula en Vivo y modo espectador.</p>
+      <label class="field-label">Nombre de usuario
+        <input id="username-prompt-input" placeholder="Ej: Prof. Jonathan o Mateo A." maxlength="40" autocomplete="off" />
+      </label>
+    </div>
+    <div class="dialog-footer">
+      <button id="username-prompt-save" class="accent-button">Guardar y continuar</button>
+    </div>
+  </dialog>
+
   <dialog id="command-dialog" class="command-dialog"><div class="command-input-wrap"><i data-lucide="search"></i><input id="command-input" placeholder="¿Qué quieres hacer?" autocomplete="off" /><kbd>Esc</kbd></div><div id="command-list"></div></dialog>
-  <dialog id="help-dialog" class="help-dialog"><div class="dialog-header"><h1>Hola, PseudoStudio.</h1><button data-close="help-dialog" class="icon-button" aria-label="Cerrar ayuda"><i data-lucide="x"></i></button></div><p>Un espacio moderno para aprender a programar, con el intérprete real de PSeInt y una interfaz inspirada en Visual Studio Code.</p><div class="shortcut-grid"><span>Ejecutar</span><kbd>F5</kbd><span>Depurar</span><kbd>F6</kbd><span>Siguiente paso</span><kbd>F10</kbd><span>Comandos PSeInt</span><kbd>F4 / Ctrl Alt C</kbd><span>Detener</span><kbd>Shift F5</kbd><span>Guardar / Como</span><kbd>Ctrl S / Ctrl Shift S</kbd><span>Abrir / Nuevo</span><kbd>Ctrl O / Ctrl N</kbd><span>Buscar / Reemplazar</span><kbd>Ctrl F / Ctrl H</kbd><span>Paleta de comandos</span><kbd>Ctrl Shift P / Ctrl K</kbd><span>Ajustes</span><kbd>Ctrl ,</kbd><span>Zoom editor</span><kbd>Ctrl + / Ctrl -</kbd><span>Comentar línea</span><kbd>Ctrl /</kbd></div><p class="muted">Proyecto independiente, sin afiliación oficial con PSeInt. Motor de Pablo Novara y colaboradores, GPL v2. PseudoStudio 0.3.0 · Windows x64.</p><p class="muted">Esta versión incluye arrastre interactivo de comandos de PSeInt, flujogramas clásicos y Nassi–Shneiderman, snippets estilo VS Code, sticky scroll y exportación a 12 lenguajes.</p></dialog>
+  <dialog id="help-dialog" class="help-dialog"><div class="dialog-header"><h1>Hola, PseudoStudio.</h1><button data-close="help-dialog" class="icon-button" aria-label="Cerrar ayuda"><i data-lucide="x"></i></button></div><p>Un espacio moderno para aprender a programar, con el intérprete real de PSeInt y una interfaz inspirada en Visual Studio Code.</p><div class="shortcut-grid"><span>Ejecutar</span><kbd>F5</kbd><span>Depurar</span><kbd>F6</kbd><span>Siguiente paso</span><kbd>F10</kbd><span>Comandos PSeInt</span><kbd>F4 / Ctrl Alt C</kbd><span>Aula en Vivo</span><kbd>Ctrl Alt L</kbd><span>Detener</span><kbd>Shift F5</kbd><span>Guardar / Como</span><kbd>Ctrl S / Ctrl Shift S</kbd><span>Abrir / Nuevo</span><kbd>Ctrl O / Ctrl N</kbd><span>Buscar / Reemplazar</span><kbd>Ctrl F / Ctrl H</kbd><span>Paleta de comandos</span><kbd>Ctrl Shift P / Ctrl K</kbd><span>Ajustes</span><kbd>Ctrl ,</kbd><span>Zoom editor</span><kbd>Ctrl + / Ctrl -</kbd><span>Comentar línea</span><kbd>Ctrl /</kbd></div><p class="muted">Proyecto independiente, sin afiliación oficial con PSeInt. Motor de Pablo Novara y colaboradores, GPL v2. PseudoStudio 0.3.0 · Windows x64.</p><p class="muted">Esta versión incluye arrastre interactivo de comandos de PSeInt, aula en vivo tipo Live Share con código QR y modo espectador, flujogramas y exportación a 12 lenguajes.</p></dialog>
   <dialog id="export-dialog" class="export-dialog"><div class="dialog-header"><h1>Exportar programa</h1><button data-close="export-dialog" class="icon-button" aria-label="Cerrar exportación"><i data-lucide="x"></i></button></div><div class="settings-content"><label class="field-label">Lenguaje de destino<select id="export-language"><option value="py3">Python 3</option><option value="cpp">C++</option><option value="c">C</option><option value="java">Java</option><option value="js">JavaScript</option><option value="html">HTML + JavaScript</option><option value="cs">C#</option><option value="pas">Pascal</option><option value="php">PHP</option><option value="m">MATLAB / Octave</option><option value="vb">Visual Basic</option><option value="bas">QBasic</option></select></label><p class="muted">Conversión con el exportador de PSeInt. El resultado puede necesitar ajustes para el compilador o entorno de destino; la vista previa no ejecuta el código exportado.</p><p id="export-status" role="status"></p><textarea id="export-preview" readonly spellcheck="false" aria-label="Código exportado"></textarea></div><div class="dialog-footer"><button data-close="export-dialog" class="secondary">Cerrar</button><button id="export-save" class="accent-button" disabled>Guardar archivo…</button></div></dialog>
   <dialog id="layout-dialog" class="layout-dialog"><div class="dialog-header"><h1>Distribución del espacio</h1><button data-close="layout-dialog" class="icon-button" aria-label="Cerrar distribución"><i data-lucide="x"></i></button></div><div class="settings-content"><p class="muted">Arrastra los bordes entre paneles para ajustar su tamaño. Doble clic en un borde restablece su medida.</p><label class="check-label"><input type="checkbox" id="layout-sidebar" />Explorador <kbd>Ctrl B</kbd></label><label class="check-label"><input type="checkbox" id="layout-commands" />Panel de comandos PSeInt <kbd>Ctrl Alt C</kbd></label><label class="check-label"><input type="checkbox" id="layout-terminal" />Terminal y problemas <kbd>Ctrl J</kbd></label><label class="check-label"><input type="checkbox" id="layout-ai" />Asistente IA</label><label class="field-label">Ubicación del explorador<select id="layout-side"><option value="left">Izquierda</option><option value="right">Derecha</option></select></label><label class="field-label">Ubicación de la terminal<select id="layout-dock"><option value="bottom">Abajo</option><option value="right">Derecha del editor</option></select></label><button id="layout-focus" class="secondary">Ampliar / restaurar editor</button><button id="layout-reset" class="secondary">Restablecer distribución</button></div><div class="dialog-footer">La distribución se guarda automáticamente.<button data-close="layout-dialog" class="secondary">Listo</button></div></dialog>
   <dialog id="entry-dialog"><form id="entry-form"><div class="dialog-header"><h1 id="entry-title">Nuevo archivo</h1></div><div class="settings-content"><label class="field-label">Nombre<input id="entry-name" required maxlength="180" autocomplete="off" /></label><p id="entry-parent" class="muted"></p><p id="entry-error" role="alert"></p></div><div class="dialog-footer"><button type="button" data-close="entry-dialog" class="secondary">Cancelar</button><button type="submit" class="accent-button">Crear</button></div></form></dialog>

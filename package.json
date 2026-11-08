@@ -23,12 +23,12 @@
     "exporter:build": "powershell -ExecutionPolicy Bypass -File scripts/build-exporter.ps1"
   },
   "devDependencies": {
-    "lucide": "^0.468.0",
-    "monaco-editor": "^0.52.2",
+    "@playwright/test": "^1.58.0",
     "electron": "^42.0.0",
     "electron-builder": "^26.0.12",
-    "vite": "^7.3.1",
-    "@playwright/test": "^1.58.0"
+    "lucide": "^0.468.0",
+    "monaco-editor": "^0.52.2",
+    "vite": "^7.3.1"
   },
   "build": {
     "appId": "org.pseudostudio.desktop",
@@ -68,5 +68,9 @@
       "signExecutable": false
     },
     "artifactName": "PseudoStudio-${version}-Windows-x64.${ext}"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.5",
+    "qrcode": "^1.5.4"
   }
 }

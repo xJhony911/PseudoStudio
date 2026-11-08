@@ -18,6 +18,7 @@ import './style.css';
 import { createLayout } from './layout';
 import { createDiagrams } from './diagrams';
 import { createCommandsManager, insertCommandSnippet } from './commands';
+import { createLiveManager } from './live';
 
 self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 const $ = id => document.getElementById(id);
@@ -142,6 +143,37 @@ const commandsManager = createCommandsManager({
   getProfile: () => settings.profile,
   onInserted: (cmd, isAlt) => {
     toast(`Instrucción «${cmd.name}» insertada${isAlt ? ' (variante)' : ''}.`);
+  },
+  toast
+});
+
+const liveManager = createLiveManager({
+  editor,
+  getCurrentDoc: () => current ? { id: current.id, name: current.name, content: current.model.getValue() } : null,
+  onRemoteCode: (fileName, code, isReadOnly) => {
+    if (current) {
+      if (fileName && current.name !== fileName) {
+        current.name = fileName;
+        $('breadcrumb-file').textContent = fileName;
+      }
+      current.model.setValue(code);
+    }
+    editor.updateOptions({ readOnly: isReadOnly });
+  },
+  onRemoteTerminal: (chunk, replace) => {
+    showPanel('console');
+    if (replace) {
+      $('console-output').textContent = chunk;
+    } else {
+      appendOutput(chunk);
+    }
+  },
+  onRemoteTerminalState: (st) => {
+    if (st.running) {
+      $('run-state').innerHTML = '<span class="tiny-dot"></span>' + (st.debug ? 'Profesor depurando' : 'Profesor ejecutando');
+    } else {
+      $('run-state').textContent = 'Listo para ejecutar';
+    }
   },
   toast
 });
@@ -419,6 +451,7 @@ function appendOutput(text) {
 }
 
 function consumeOutput(chunk) {
+  liveManager.broadcastTerminalChunk(chunk);
   terminalPending += chunk;
   while (terminalPending.length) {
     const start = terminalPending.indexOf('\x1b');
@@ -446,6 +479,7 @@ async function run(debug = false) {
   if (!api) { toast('Ejecuta la aplicación de escritorio para utilizar PSeInt.', true); return; }
   const doc = current; const code = doc.model.getValue();
   running = true; $('run').disabled = true; $('debug-run').disabled = true;
+  liveManager.broadcastRunState({ running: true, debug });
   try {
     const errors = await api.check(code, settings.profile); setDiagnostics(doc, errors);
     if (errors.length) { showPanel('problems'); throw new Error(settings.profile === 'Estricto' ? 'El perfil Estricto exige otra sintaxis. Si tu ejercicio usa arreglos de tamaño variable o no usa punto y coma, selecciona PSeInt · Flexible y vuelve a ejecutar.' : 'Corrige los errores indicados en Problemas antes de ejecutar.'); }
@@ -462,6 +496,7 @@ async function run(debug = false) {
 function finishRun(result) {
   diagrams.clearDebug();
   running = false; debugging = false; $('run').disabled = false; $('debug-run').disabled = false; $('stop').classList.add('hidden'); $('run').classList.remove('hidden'); $('input-form').classList.add('hidden'); editor.updateOptions({ readOnly: false });
+  liveManager.broadcastRunState({ running: false, debug: false });
   if (runDocument && !runDocument.model.isDisposed()) debugDecorations = runDocument.model.deltaDecorations(debugDecorations, []);
   if (result) {
     if (terminalPending) { appendOutput(terminalPending.replace(/\x1b[^\n]*/g, '')); terminalPending = ''; }
@@ -533,6 +568,7 @@ function syncSettingsForm() {
   if ($('cursor-style')) $('cursor-style').value = settings.cursorStyle || 'line';
   if ($('cursor-blinking')) $('cursor-blinking').value = settings.cursorBlinking || 'smooth';
   if ($('render-whitespace')) $('render-whitespace').value = settings.renderWhitespace || 'none';
+  if ($('settings-username')) $('settings-username').value = localStorage.getItem('pseudostudio_username') || '';
   for (const [id, key] of [
     ['ligatures', 'ligatures'],
     ['minimap', 'minimap'],
@@ -599,6 +635,8 @@ async function askAI(question = $('ai-question').value.trim()) {
 }
 
 const commands = [
+  ['Aula en vivo: Iniciar transmisión o unirse', 'Ctrl Alt L', () => liveManager.showLiveDialog()],
+  ['Aula en vivo: Cambiar nombre de usuario', '', () => $('username-dialog').showModal()],
   ['Mostrar / ocultar comandos PSeInt', 'F4', () => layout.toggle('commands')],
   ['Ver flujograma', 'F7', () => diagrams.show()],
   ['Volver al código', '', () => diagrams.code()],
@@ -784,6 +822,12 @@ for (const [id, key, type] of [
   }
 }
 
+if ($('settings-username')) {
+  $('settings-username').addEventListener('input', e => {
+    liveManager.setUsername(e.target.value);
+  });
+}
+
 $('reset-settings').onclick = () => {
   settings = { ...defaults };
   applySettings();
@@ -845,12 +889,37 @@ editor.onDidChangeCursorSelection(event => {
   }
 });
 
+// Setup username prompt dialog
+const storedUser = localStorage.getItem('pseudostudio_username');
+if (!storedUser) {
+  setTimeout(() => {
+    if ($('username-dialog') && !document.querySelector('dialog[open]')) {
+      $('username-dialog').showModal();
+      if ($('username-prompt-input')) $('username-prompt-input').focus();
+    }
+  }, 800);
+}
+
+if ($('username-prompt-save')) {
+  $('username-prompt-save').onclick = () => {
+    const val = $('username-prompt-input')?.value.trim();
+    if (val) {
+      liveManager.setUsername(val);
+      $('username-dialog').close();
+      toast(`¡Bienvenido a PseudoStudio, ${val}!`);
+    } else {
+      toast('Por favor escribe tu nombre de usuario para continuar.', true);
+    }
+  };
+}
+
 window.addEventListener('keydown', event => {
   const ctrl = event.ctrlKey || event.metaKey, key = event.key.toLowerCase();
   if (document.querySelector('dialog[open]')) return;
   let action;
 
-  if (ctrl && event.shiftKey && (key === 'p' || event.code === 'KeyP')) action = showCommands;
+  if (ctrl && event.altKey && key === 'l') action = () => liveManager.showLiveDialog();
+  else if (ctrl && event.shiftKey && (key === 'p' || event.code === 'KeyP')) action = showCommands;
   else if (event.key === 'F1') action = showCommands;
   else if (key === 'f4' || (ctrl && event.altKey && key === 'c')) action = () => layout.toggle('commands');
   else if (ctrl && (key === '+' || key === '=')) {
