@@ -1,5 +1,11 @@
 {
-  "id": "pseudostudio.basics", "name": "PSeInt Essentials", "version": "1.0.0", "author": "PseudoStudio", "description": "Estructuras listas para completar. Escribe si, para o algoritmo y elige la plantilla.",
+  "id": "pseudostudio.basics",
+  "name": "PSeInt Essentials",
+  "version": "1.0.0",
+  "author": "PseudoStudio",
+  "category": "Snippets",
+  "icon": "code-2",
+  "description": "Estructuras de algoritmos listas para autocompletar: condicionales Si/SiNo, bucles Para, Mientras, Repetir, Según y Funciones con retorno.",
   "themes": [],
   "snippets": [
     { "prefix": "algoritmo", "body": "Algoritmo ${1:MiAlgoritmo}\n\t${0}\nFinAlgoritmo", "description": "Nuevo algoritmo" },

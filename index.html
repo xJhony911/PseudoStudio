@@ -57,7 +57,21 @@
           <div class="sidebar-tip"><span class="tip-dot"></span><b>Un paso a la vez.</b><p>Escribe, ejecuta y observa cómo tus ideas toman forma.</p><button id="tip-examples">Explorar ejemplos <span>↗</span></button></div>
         </section>
         <section id="examples-view" class="side-view hidden"><p class="side-description">Aprende experimentando.<br>Abre un ejemplo y hazlo tuyo.</p><div id="example-list"></div></section>
-        <section id="extensions-view" class="side-view hidden"><p class="side-description">Tu editor, a tu manera.</p><button id="install-extension" class="secondary wide"><i data-lucide="download"></i>Instalar archivo JSON</button><div id="extension-list"></div><p class="side-footnote">Extensiones declarativas de temas y snippets. Formato propio de PseudoStudio.</p></section>
+        <section id="extensions-view" class="side-view hidden">
+          <div class="ext-search-bar">
+            <i data-lucide="search"></i>
+            <input id="extension-search" type="search" placeholder="Buscar extensiones...">
+          </div>
+          <div class="ext-nav-tabs">
+            <button id="ext-tab-catalog" class="ext-tab-btn active"><i data-lucide="store"></i> Catálogo</button>
+            <button id="ext-tab-installed" class="ext-tab-btn"><i data-lucide="check-circle-2"></i> Instaladas <span id="ext-installed-count" class="ext-count-pill">0</span></button>
+          </div>
+          <div id="extension-list" class="ext-list-container"></div>
+          <div class="ext-bottom-actions">
+            <button id="install-extension" class="secondary wide"><i data-lucide="folder-open"></i> Instalar archivo JSON…</button>
+            <p class="side-footnote">Extensiones oficiales de PseudoStudio: Discord Rich Presence, temas y snippets.</p>
+          </div>
+        </section>
       </aside>
       <div id="sidebar-resizer" class="vertical-resizer" role="separator" aria-label="Ancho del explorador" aria-orientation="vertical" tabindex="0"></div>
       <section class="editor-column" id="editor-column">

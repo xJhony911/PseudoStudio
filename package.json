@@ -58,6 +58,10 @@
         "to": "extensions"
       },
       {
+        "from": "catalog",
+        "to": "catalog"
+      },
+      {
         "from": "vendor/pseint",
         "to": "source/pseint"
       }

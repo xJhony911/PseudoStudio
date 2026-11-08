@@ -1,0 +1,28 @@
+{
+  "id": "pseudostudio.neon",
+  "name": "Cyberpunk Neón",
+  "version": "1.0.0",
+  "author": "Comunidad",
+  "category": "Temas",
+  "icon": "sparkles",
+  "description": "Tema de estética futurista cyberpunk con fondo azul noche oscuro, cursor fucsia brillante y resaltado en magenta y cian neón.",
+  "themes": [
+    {
+      "id": "neon",
+      "name": "Cyberpunk Neón",
+      "base": "vs-dark",
+      "colors": {
+        "editor.background": "#0e101a",
+        "editor.foreground": "#d8e1f0",
+        "editorCursor.foreground": "#ff007f"
+      },
+      "rules": [
+        { "token": "keyword", "foreground": "ff007f" },
+        { "token": "string", "foreground": "00f5d4" }
+      ]
+    }
+  ],
+  "snippets": [
+    { "prefix": "neon-banner", "body": "Escribir \"==============================\"\nEscribir \"⚡ MODO NEÓN ACTIVADO ⚡\"\nEscribir \"==============================\"", "description": "Banner decorativo Neón" }
+  ]
+}

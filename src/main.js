@@ -46,7 +46,8 @@ const defaults = {
   profile: 'Flexible'
 };
 let settings = { ...defaults, ...readStore('settings', {}) };
-let extensions = [], fonts = [], documents = [], current = null, counter = 1, running = false, debugging = false, runDocument = null, runStarted = 0, checking = false, pendingCheck = false, aiBusy = false;
+let extensions = [], catalog = [], fonts = [], documents = [], current = null, counter = 1, running = false, debugging = false, runDocument = null, runStarted = 0, checking = false, pendingCheck = false, aiBusy = false;
+let activeExtTab = 'catalog', extSearchQuery = '';
 let debugDecorations = [], watchNames = [], watchValues = {}, checkTimer, draftTimer, toastTimer;
 let terminalPending = '', inputKind = 'line';
 let project = null, selectedFolder = '', entryDirectory = false;
@@ -186,7 +187,11 @@ function newDocument({ name = `algoritmo${counter++}.psc`, content = 'Algoritmo 
   model.updateOptions({ tabSize: settings.tabSize, insertSpaces: true });
   const doc = { id, name, path, model, savedContent, pristine, diagnostics: [] };
   model.onDidChangeContent(() => {
-    if (current?.model === model) diagrams.changed();
+    if (current?.model === model) {
+      diagrams.changed();
+      liveManager.onDocContentChange(doc);
+      notifyDiscord();
+    }
     renderFiles();
     renderOutline();
     clearTimeout(draftTimer);
@@ -230,6 +235,8 @@ function activate(doc) {
   renderProblems();
   $('breadcrumb-file').textContent = doc.name;
   updateBreadcrumbSymbol();
+  liveManager.onDocumentChange(doc);
+  notifyDiscord(true);
   scheduleCheck();
   persistDrafts();
   editor.focus();
@@ -287,6 +294,7 @@ async function saveFile(saveAs = false) {
     renderFiles();
     $('breadcrumb-file').textContent = current.name;
     persistDrafts();
+    notifyDiscord(true);
     toast('Archivo guardado.');
     if (project) await renderProject();
   }
@@ -485,6 +493,7 @@ async function run(debug = false) {
     if (errors.length) { showPanel('problems'); throw new Error(settings.profile === 'Estricto' ? 'El perfil Estricto exige otra sintaxis. Si tu ejercicio usa arreglos de tamaño variable o no usa punto y coma, selecciona PSeInt · Flexible y vuelve a ejecutar.' : 'Corrige los errores indicados en Problemas antes de ejecutar.'); }
     if (current !== doc || doc.model.getValue() !== code) throw new Error('El archivo cambió durante la comprobación. Vuelve a ejecutar.');
     debugging = debug; runDocument = doc; runStarted = performance.now(); terminalPending = ''; watchNames = [...new Set(symbols(code).filter(s => s.kind === 'variable').map(s => s.name))].slice(0, 50); watchValues = {};
+    notifyDiscord(true);
     $('console-output').textContent = ''; $('terminal-welcome').classList.add('hidden'); $('input-form').classList.add('hidden');
     $('run-state').innerHTML = '<span class="tiny-dot"></span>' + (debug ? 'Depurando' : 'Ejecutando');
     $('stop').classList.remove('hidden'); $('run').classList.add('hidden');
@@ -497,6 +506,7 @@ function finishRun(result) {
   diagrams.clearDebug();
   running = false; debugging = false; $('run').disabled = false; $('debug-run').disabled = false; $('stop').classList.add('hidden'); $('run').classList.remove('hidden'); $('input-form').classList.add('hidden'); editor.updateOptions({ readOnly: false });
   liveManager.broadcastRunState({ running: false, debug: false });
+  notifyDiscord(true);
   if (runDocument && !runDocument.model.isDisposed()) debugDecorations = runDocument.model.deltaDecorations(debugDecorations, []);
   if (result) {
     if (terminalPending) { appendOutput(terminalPending.replace(/\x1b[^\n]*/g, '')); terminalPending = ''; }
@@ -605,14 +615,149 @@ async function loadFont(font) {
   if (![...$('font-family').options].some(o => o.value === font.name)) { const option = new Option(font.name, font.name); $('font-family').add(option); }
 }
 
+let discordTimer = null;
+function notifyDiscord(immediate = false) {
+  if (!api?.discordUpdate) return;
+  clearTimeout(discordTimer);
+  const doUpdate = () => {
+    try {
+      const pos = editor?.getPosition();
+      api.discordUpdate({
+        fileName: current?.name || '',
+        line: pos ? pos.lineNumber : 1,
+        col: pos ? pos.column : 1,
+        projectName: project?.name || '',
+        isRunning: running,
+        isDebug: debugging,
+        profile: $('profile-select')?.value || settings.profile || 'Flexible'
+      });
+    } catch {}
+  };
+  if (immediate) doUpdate();
+  else discordTimer = setTimeout(doUpdate, 350);
+}
+
+function getDiscordSvg() {
+  return `<svg viewBox="0 0 24 24" class="ext-brand-icon discord" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>`;
+}
+
+function getExtIconHtml(ext) {
+  if (ext.id === 'pseudostudio.discord-presence' || ext.icon === 'discord') {
+    return getDiscordSvg();
+  }
+  const iconName = ext.icon || (ext.themes?.length ? 'palette' : ext.snippets?.length ? 'code-2' : 'package');
+  return `<i data-lucide="${iconName}"></i>`;
+}
+
+function switchExtTab(tab) {
+  activeExtTab = tab;
+  $('ext-tab-catalog')?.classList.toggle('active', tab === 'catalog');
+  $('ext-tab-installed')?.classList.toggle('active', tab === 'installed');
+  renderExtensions();
+}
+
 function renderExtensions() {
-  $('extension-list').innerHTML = extensions.map(e => `<article class="extension-card"><h3>${esc(e.name)}</h3><p>${esc(e.description)}</p><footer><span>v${esc(e.version)}</span><button data-extension="${esc(e.id)}" data-enabled="${e.enabled}">${e.enabled ? 'Desactivar' : 'Activar'}</button></footer></article>`).join('');
+  if (!$('extension-list')) return;
+
+  const installedMap = new Map(extensions.map(e => [e.id, e]));
+  if ($('ext-installed-count')) $('ext-installed-count').textContent = extensions.length;
+
+  let list = activeExtTab === 'catalog' ? catalog : extensions;
+
+  if (extSearchQuery) {
+    const q = extSearchQuery.toLowerCase();
+    list = list.filter(e =>
+      (e.name || '').toLowerCase().includes(q) ||
+      (e.description || '').toLowerCase().includes(q) ||
+      (e.category || '').toLowerCase().includes(q) ||
+      (e.author || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (activeExtTab === 'installed' && list.length === 0) {
+    $('extension-list').innerHTML = `
+      <div class="ext-empty-state">
+        <i data-lucide="package-open"></i>
+        <p>Aún no tienes extensiones instaladas.</p>
+        <button id="btn-goto-catalog" class="secondary" style="font-size:11px"><i data-lucide="compass"></i> Explorar Catálogo</button>
+      </div>`;
+    const btn = $('btn-goto-catalog');
+    if (btn) btn.onclick = () => switchExtTab('catalog');
+    refreshIcons();
+    return;
+  }
+
+  if (activeExtTab === 'catalog' && list.length === 0) {
+    $('extension-list').innerHTML = `
+      <div class="ext-empty-state">
+        <i data-lucide="search-x"></i>
+        <p>No se encontraron extensiones en el catálogo.</p>
+      </div>`;
+    refreshIcons();
+    return;
+  }
+
+  $('extension-list').innerHTML = list.map(item => {
+    const isInstalled = installedMap.has(item.id);
+    const installedItem = installedMap.get(item.id);
+    const isEnabled = isInstalled ? (installedItem.enabled !== false) : false;
+    const catClass = (item.category || 'General').toLowerCase().replace(/[\s/]+/g, '-');
+
+    let actionsHtml = '';
+    if (isInstalled) {
+      actionsHtml = `
+        <span class="ext-status-tag"><i data-lucide="check"></i> ${isEnabled ? 'Activa' : 'Desactivada'}</span>
+        <button class="ext-btn ${isEnabled ? '' : 'primary'}" data-ext-toggle="${esc(item.id)}" data-enabled="${isEnabled}">
+          ${isEnabled ? 'Desactivar' : 'Activar'}
+        </button>
+        <button class="ext-btn danger" data-ext-uninstall="${esc(item.id)}" title="Desinstalar extensión">
+          <i data-lucide="trash-2"></i>
+        </button>
+      `;
+    } else {
+      actionsHtml = `
+        <button class="ext-btn primary" data-ext-install-catalog="${esc(item.id)}">
+          <i data-lucide="download"></i> Instalar
+        </button>
+      `;
+    }
+
+    return `
+      <article class="ext-card ${isInstalled ? 'installed' : ''}">
+        <div class="ext-card-header">
+          <div class="ext-icon-box ${catClass}">
+            ${getExtIconHtml(item)}
+          </div>
+          <div class="ext-card-info">
+            <div class="ext-card-title-row">
+              <h4 class="ext-card-title" title="${esc(item.name)}">${esc(item.name)}</h4>
+              <span class="ext-card-ver">v${esc(item.version)}</span>
+            </div>
+            <div class="ext-card-meta">
+              <span>${esc(item.author || 'PseudoStudio')}</span>
+              <span class="ext-cat-pill">${esc(item.category || 'General')}</span>
+            </div>
+          </div>
+        </div>
+        <p class="ext-card-desc">${esc(item.description)}</p>
+        <div class="ext-card-actions">
+          ${actionsHtml}
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  refreshIcons();
 }
 
 function updateExtensions(items) {
-  extensions = items; registerThemes(monaco, extensions);
+  extensions = items || [];
+  registerThemes(monaco, extensions);
   if (!allThemes(extensions).some(t => t.id === settings.theme)) settings.theme = 'obsidian';
-  applySettings(); renderExtensions(); renderThemeGrid();
+  applySettings();
+  renderExtensions();
+  renderThemeGrid();
+  notifyDiscord(true);
 }
 
 function toggleAI(force) { layout.toggle('ai', force); }
@@ -708,6 +853,33 @@ document.addEventListener('click', safe(async event => {
   if (target.dataset.settingsTab) return settingsTab(target.dataset.settingsTab);
   if (target.dataset.theme) { settings.theme = target.dataset.theme; settings.accent = null; applySettings(); syncSettingsForm(); return; }
   if (target.dataset.example) { const ex = examples[Number(target.dataset.example)]; newDocument({ name: ex.name, content: ex.code }); showView('explorer'); return; }
+  if (target.dataset.extInstallCatalog) {
+    const id = target.dataset.extInstallCatalog;
+    const res = await api.installCatalogExtension(id);
+    catalog = res.catalog || [];
+    updateExtensions(res.extensions || []);
+    toast('Extensión instalada correctamente.');
+    return;
+  }
+  if (target.dataset.extUninstall) {
+    const id = target.dataset.extUninstall;
+    const ok = await api.confirm('¿Deseas desinstalar esta extensión?');
+    if (!ok) return;
+    const res = await api.uninstallExtension(id);
+    catalog = res.catalog || [];
+    updateExtensions(res.extensions || []);
+    toast('Extensión desinstalada.');
+    return;
+  }
+  if (target.dataset.extToggle) {
+    const id = target.dataset.extToggle;
+    const nextEnabled = target.dataset.enabled !== 'true';
+    const res = await api.toggleExtension(id, nextEnabled);
+    if (api.catalogExtensions) catalog = await api.catalogExtensions();
+    updateExtensions(res);
+    toast(nextEnabled ? 'Extensión activada.' : 'Extensión desactivada.');
+    return;
+  }
   if (target.dataset.extension) return updateExtensions(await api.toggleExtension(target.dataset.extension, target.dataset.enabled !== 'true'));
   if (target.dataset.question) return askAI(target.dataset.question);
   if (target.dataset.command !== undefined) { $('command-dialog').close(); return commands[Number(target.dataset.command)][2](); }
@@ -754,6 +926,7 @@ $('profile').onchange = () => {
   diagrams.changed();
   persistSettings();
   scheduleCheck();
+  notifyDiscord(true);
 };
 
 if ($('profile-status')) {
@@ -764,6 +937,7 @@ if ($('profile-status')) {
     diagrams.changed();
     persistSettings();
     scheduleCheck();
+    notifyDiscord(true);
     toast(`Perfil cambiado a PSeInt · ${settings.profile}.`);
   };
 }
@@ -869,6 +1043,8 @@ $('save-ai').onclick = safe(async () => {
 editor.onDidChangeCursorPosition(event => {
   $('cursor-position').textContent = `Lín ${event.position.lineNumber}, Col ${event.position.column}`;
   updateBreadcrumbSymbol();
+  liveManager.onCursorChange(event.position);
+  notifyDiscord();
 });
 
 editor.onDidChangeCursorSelection(event => {
@@ -890,6 +1066,18 @@ editor.onDidChangeCursorSelection(event => {
 });
 
 // Setup username prompt dialog
+if ($('ext-tab-catalog')) {
+  $('ext-tab-catalog').onclick = () => switchExtTab('catalog');
+}
+if ($('ext-tab-installed')) {
+  $('ext-tab-installed').onclick = () => switchExtTab('installed');
+}
+if ($('extension-search')) {
+  $('extension-search').oninput = e => {
+    extSearchQuery = e.target.value.trim();
+    renderExtensions();
+  };
+}
 const storedUser = localStorage.getItem('pseudostudio_username');
 if (!storedUser) {
   setTimeout(() => {
@@ -989,9 +1177,11 @@ if (api) safe(async () => {
   await renderProject();
   fonts = initial.fonts;
   for (const font of fonts) await loadFont(font).catch(() => {});
-  updateExtensions(initial.extensions);
+  catalog = initial.catalog || [];
+  updateExtensions(initial.extensions || []);
   await document.fonts.ready;
   monaco.editor.remeasureFonts();
   scheduleCheck();
+  notifyDiscord(true);
 })();
 else toast('Vista de interfaz. Abre PseudoStudio.exe para ejecutar algoritmos.');

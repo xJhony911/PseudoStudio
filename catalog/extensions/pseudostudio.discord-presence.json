@@ -1,0 +1,14 @@
+{
+  "id": "pseudostudio.discord-presence",
+  "name": "Discord Rich Presence",
+  "version": "1.0.0",
+  "author": "PseudoStudio",
+  "category": "Integración",
+  "icon": "discord",
+  "description": "Muestra tu actividad en tiempo real en Discord: algoritmo que estás editando, número de línea y columna, ejecución, depuración y perfil de PSeInt.",
+  "features": [
+    "discord-rpc"
+  ],
+  "themes": [],
+  "snippets": []
+}

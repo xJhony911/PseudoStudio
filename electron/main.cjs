@@ -2,7 +2,16 @@ const { app, BrowserWindow, ipcMain, dialog, safeStorage } = require('electron')
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { Engine } = require('./engine.cjs');
-const { validateExtension, readExtensions } = require('./extensions.cjs');
+const { DiscordRPC } = require('./discord.cjs');
+const discordRPC = new DiscordRPC();
+const {
+  validateExtension,
+  readExtensions,
+  readCatalogExtensions,
+  readInstalledExtensions,
+  installCatalogExtension,
+  uninstallExtension
+} = require('./extensions.cjs');
 if (process.env.PSEUDOSTUDIO_DATA_DIR) app.setPath('userData', path.resolve(process.env.PSEUDOSTUDIO_DATA_DIR));
 let win, engine, aiController, allowClose = false;
 const allowedFiles = new Set();
@@ -16,7 +25,37 @@ const handle = (name, fn) => ipcMain.handle(name, async (event, ...args) => {
   if (event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame) throw new Error('Solicitud no autorizada.');
   return fn(...args);
 });
-async function listExtensions() { return readExtensions([resource('extensions'), userFile('extensions')], await readJSON('disabled-extensions.json', [])); }
+function getCatalogDirs() {
+  const dirs = [resource('catalog/extensions')];
+  const devDir = path.join(__dirname, '../catalog/extensions');
+  if (!dirs.includes(devDir)) dirs.push(devDir);
+  return dirs;
+}
+
+async function listInstalledExtensions() {
+  const disabled = await readJSON('disabled-extensions.json', []);
+  return readInstalledExtensions(userFile('extensions'), disabled);
+}
+
+async function listCatalogExtensions() {
+  const catalog = await readCatalogExtensions(getCatalogDirs());
+  const installed = await listInstalledExtensions();
+  const installedMap = new Map(installed.map(e => [e.id, e]));
+  return catalog.map(ext => ({
+    ...ext,
+    isInstalled: installedMap.has(ext.id),
+    isEnabled: installedMap.get(ext.id)?.enabled ?? false
+  }));
+}
+
+async function syncDiscordStatus() {
+  try {
+    const installed = await listInstalledExtensions();
+    const discordExt = installed.find(e => e.id === 'pseudostudio.discord-presence');
+    const isEnabled = Boolean(discordExt && discordExt.enabled);
+    discordRPC.setEnabled(isEnabled);
+  } catch {}
+}
 async function aiPublic() { const c = await readJSON('ai.json', {}); return { baseUrl: c.baseUrl || 'http://127.0.0.1:11434/v1', model: c.model || '', hasKey: !!c.key }; }
 
 if (!app.requestSingleInstanceLock()) {
@@ -36,8 +75,15 @@ app.whenReady().then(async () => {
   win.on('close', e => { if (!allowClose) { e.preventDefault(); win.webContents.send('window:closing'); } });
   for (const name of ['output', 'exit', 'debug']) engine.on(name, data => { if (!win.isDestroyed()) win.webContents.send(`engine:${name}`, data); });
   handle('init', async () => {
+    await syncDiscordStatus();
     const project = workspace.root ? {path: workspace.root, name: path.basename(workspace.root) || workspace.root} : null;
-    return { version: app.getVersion(), extensions: await listExtensions(), fonts: await readJSON('fonts.json', []), project };
+    return {
+      version: app.getVersion(),
+      extensions: await listInstalledExtensions(),
+      catalog: await listCatalogExtensions(),
+      fonts: await readJSON('fonts.json', []),
+      project
+    };
   });
   handle('workspace:open', async () => {
     const result = await dialog.showOpenDialog(win, { title: 'Abrir carpeta de proyecto', properties: ['openDirectory'] });
@@ -94,19 +140,48 @@ app.whenReady().then(async () => {
   handle('engine:input', (value, kind) => engine.input(value, kind));
   handle('engine:debug', command => engine.command(command));
   handle('engine:stop', () => engine.stop());
-  handle('extensions:list', listExtensions);
+  handle('extensions:list', listInstalledExtensions);
+  handle('extensions:catalog', listCatalogExtensions);
+  handle('extensions:installCatalog', async (id) => {
+    await installCatalogExtension(getCatalogDirs(), userFile('extensions'), id);
+    let disabled = await readJSON('disabled-extensions.json', []);
+    disabled = disabled.filter(x => x !== id);
+    await writeJSON('disabled-extensions.json', disabled);
+    await syncDiscordStatus();
+    return {
+      extensions: await listInstalledExtensions(),
+      catalog: await listCatalogExtensions()
+    };
+  });
+  handle('extensions:uninstall', async (id) => {
+    await uninstallExtension(userFile('extensions'), id);
+    let disabled = await readJSON('disabled-extensions.json', []);
+    disabled = disabled.filter(x => x !== id);
+    await writeJSON('disabled-extensions.json', disabled);
+    await syncDiscordStatus();
+    return {
+      extensions: await listInstalledExtensions(),
+      catalog: await listCatalogExtensions()
+    };
+  });
   handle('extensions:install', async () => {
     const result = await dialog.showOpenDialog(win, { title: 'Instalar extensión declarativa', properties: ['openFile'], filters: [{ name: 'Extensión PseudoStudio', extensions: ['json'] }] });
     if (result.canceled) return null;
     const file = result.filePaths[0]; if ((await fs.stat(file)).size > 250_000) throw new Error('La extensión supera 250 KB.');
     const data = validateExtension(JSON.parse(await fs.readFile(file, 'utf8')));
     const dir = userFile('extensions'); await fs.mkdir(dir, { recursive: true }); await fs.writeFile(path.join(dir, data.id + '.json'), JSON.stringify(data, null, 2));
-    return listExtensions();
+    await syncDiscordStatus();
+    return listInstalledExtensions();
   });
   handle('extensions:toggle', async (id, enabled) => {
-    if (!(await listExtensions()).some(e => e.id === id)) throw new Error('Extensión desconocida.');
+    if (!(await listInstalledExtensions()).some(e => e.id === id)) throw new Error('Extensión desconocida.');
     let disabled = await readJSON('disabled-extensions.json', []); disabled = disabled.filter(x => x !== id); if (!enabled) disabled.push(id);
-    await writeJSON('disabled-extensions.json', disabled); return listExtensions();
+    await writeJSON('disabled-extensions.json', disabled);
+    await syncDiscordStatus();
+    return listInstalledExtensions();
+  });
+  handle('discord:update', async (activity) => {
+    discordRPC.update(activity || {});
   });
   handle('font:import', async () => {
     const result = await dialog.showOpenDialog(win, { title: 'Añadir fuente al editor', filters: [{ name: 'Tipografía', extensions: ['ttf', 'otf', 'woff2'] }], properties: ['openFile'] });
@@ -156,5 +231,5 @@ app.whenReady().then(async () => {
   win.show();
 });
 }
-app.on('before-quit', () => { allowClose = true; engine?.dispose(); aiController?.abort(); });
-app.on('window-all-closed', () => { engine?.dispose(); app.quit(); });
+app.on('before-quit', () => { allowClose = true; engine?.dispose(); aiController?.abort(); discordRPC.disconnect(); });
+app.on('window-all-closed', () => { engine?.dispose(); discordRPC.disconnect(); app.quit(); });

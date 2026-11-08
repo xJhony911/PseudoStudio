@@ -1,0 +1,28 @@
+{
+  "id": "pseudostudio.ocean",
+  "name": "Océano Profundo",
+  "version": "1.0.0",
+  "author": "Comunidad",
+  "category": "Temas",
+  "icon": "palette",
+  "description": "Tema visual oscuro en tonos cian y azul marino con contrastes turquesa de alto confort para programar de noche.",
+  "themes": [
+    {
+      "id": "ocean",
+      "name": "Océano Profundo",
+      "base": "vs-dark",
+      "colors": {
+        "editor.background": "#10212b",
+        "editor.foreground": "#d6edf5",
+        "editorCursor.foreground": "#5ad9c0"
+      },
+      "rules": [
+        { "token": "keyword", "foreground": "6fbedf" },
+        { "token": "string", "foreground": "9edb99" }
+      ]
+    }
+  ],
+  "snippets": [
+    { "prefix": "hola-oceano", "body": "Escribir \"Hola desde Océano Profundo\"", "description": "Saludo temático" }
+  ]
+}

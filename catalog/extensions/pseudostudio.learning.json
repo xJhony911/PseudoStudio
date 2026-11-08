@@ -1,5 +1,12 @@
 {
-  "id": "pseudostudio.learning", "name": "Laboratorio de algoritmos", "version": "1.0.0", "author": "PseudoStudio", "description": "Plantillas de suma, intercambio y recorrido de arreglos para practicar.", "themes": [],
+  "id": "pseudostudio.learning",
+  "name": "Laboratorio de Algoritmos",
+  "version": "1.0.0",
+  "author": "PseudoStudio",
+  "category": "Educación",
+  "icon": "graduation-cap",
+  "description": "Plantillas didácticas para prácticas de laboratorio: intercambio de variables, acumuladores y recorrido de vectores/matrices en base 1.",
+  "themes": [],
   "snippets": [
     { "prefix": "intercambiar", "body": "${1:auxiliar} <- ${2:a}\n${2:a} <- ${3:b}\n${3:b} <- ${1:auxiliar}", "description": "Intercambiar dos valores" },
     { "prefix": "acumular", "body": "${1:suma} <- 0\nPara ${2:i} <- 1 Hasta ${3:n} Hacer\n\t${1:suma} <- ${1:suma} + ${2:i}\nFinPara", "description": "Acumular una suma" },
