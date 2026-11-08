@@ -142,11 +142,14 @@ registerVSCodeShortcuts(editor, monaco, {
 const layout = createLayout();
 const diagrams = createDiagrams({
   api,
-  getDocument: () => current ? { id: current.id, name: current.name, content: current.model.getValue() } : null,
+  getDocument: () => current ? { id: current.id, name: current.name, content: current.model.getValue(), model: current.model } : null,
   getProfile: () => settings.profile,
   onProblems: errors => { if (current) setDiagnostics(current, errors); },
   onLine: showLine,
-  toast
+  toast,
+  editor,
+  onModeChange: () => renderFiles(),
+  refreshIcons
 });
 
 const commandsManager = createCommandsManager({
@@ -232,6 +235,9 @@ function updateBreadcrumbSymbol() {
 function activate(doc) {
   navigationVersion++;
   if (!doc || doc.model.isDisposed()) return;
+  if (diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible()) {
+    diagrams.code();
+  }
   if (doc === current) return;
   if (debugging && doc !== runDocument) { toast('Termina la depuración antes de cambiar de archivo.'); return; }
   if (current) current.viewState = editor.saveViewState();
@@ -253,7 +259,20 @@ function activate(doc) {
 }
 
 function renderFiles() {
-  $('tabs').innerHTML = documents.map(d => `<div class="tab ${d === current ? 'active' : ''}" role="tab" aria-selected="${d === current}" data-doc="${d.id}">${icon('file-code-2')}<span>${esc(d.name)}</span><button data-close-doc="${d.id}" title="Cerrar archivo" aria-label="Cerrar ${esc(d.name)}">${isDirty(d) ? '<span class="unsaved">•</span>' : icon('x')}</button></div>`).join('');
+  const isDiagram = diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible();
+  let tabsHtml = documents.map(d => {
+    const isCurrent = d === current;
+    if (isCurrent && isDiagram) {
+      return `<div class="tab file-tab inactive-while-diagram" role="tab" aria-selected="false" data-doc="${d.id}" title="Código fuente: ${esc(d.name)} · Haz clic para volver al editor">${icon('file-code-2')}<span>${esc(d.name)}</span><span class="tab-code-tag">Código</span><button data-close-doc="${d.id}" title="Cerrar archivo" aria-label="Cerrar ${esc(d.name)}">${isDirty(d) ? '<span class="unsaved">•</span>' : icon('x')}</button></div>`;
+    }
+    return `<div class="tab ${isCurrent ? 'active' : ''}" role="tab" aria-selected="${isCurrent}" data-doc="${d.id}">${icon('file-code-2')}<span>${esc(d.name)}</span><button data-close-doc="${d.id}" title="Cerrar archivo" aria-label="Cerrar ${esc(d.name)}">${isDirty(d) ? '<span class="unsaved">•</span>' : icon('x')}</button></div>`;
+  }).join('');
+
+  if (isDiagram && current) {
+    tabsHtml += `<div class="tab diagram-tab active" role="tab" aria-selected="true" id="diagram-active-tab" title="Flujograma de ${esc(current.name)} · Haz clic para volver al código">${icon('workflow')}<span class="diagram-tab-title">Diagrama: ${esc(current.name)}</span><span class="diagram-tab-badge">FLUX</span><button id="close-diagram-tab" title="Volver al código (Esc)" aria-label="Volver al código">${icon('x')}</button></div>`;
+  }
+
+  $('tabs').innerHTML = tabsHtml;
   $('file-list').innerHTML = documents.map(d => `<button class="file-item ${d === current ? 'active' : ''}" data-doc="${d.id}">${icon('file-code-2')}${esc(d.name)}${isDirty(d) ? '<span class="dirty">•</span>' : ''}</button>`).join('');
   highlightProjectFile();
   refreshIcons();
@@ -862,11 +881,23 @@ function showCommands() {
 }
 
 document.addEventListener('click', safe(async event => {
-  const target = event.target.closest('button,[data-doc]'); if (!target) return;
+  const target = event.target.closest('button,[data-doc],#diagram-active-tab,#close-diagram-tab'); if (!target) return;
+  if (target.id === 'close-diagram-tab' || target.id === 'diagram-active-tab' || target.closest('#diagram-active-tab')) {
+    diagrams.code();
+    return;
+  }
   if (target.id === 'project-empty') return openProject();
   if (target.dataset.projectPath !== undefined) return clickProject(target.dataset.projectPath, target.dataset.directory === 'true');
   if (target.dataset.closeDoc) return closeDocument(target.dataset.closeDoc);
-  if (target.dataset.doc) return activate(documents.find(d => d.id === target.dataset.doc));
+  if (target.dataset.doc) {
+    const doc = documents.find(d => d.id === target.dataset.doc);
+    if (diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible()) {
+      diagrams.code();
+      if (doc && doc !== current) activate(doc);
+      return;
+    }
+    return activate(doc);
+  }
   if (target.dataset.line) return showLine(Number(target.dataset.line));
   if (target.dataset.view) return showView(target.dataset.view);
   if (target.dataset.panel) return showPanel(target.dataset.panel);
@@ -1208,7 +1239,8 @@ window.addEventListener('keydown', event => {
   else if (ctrl && key === 'k') action = showCommands;
   else if (ctrl && key === ',') action = () => showSettings();
   else if (key === 'f5') action = () => event.shiftKey ? api.stop() : run();
-  else if (key === 'f7') action = () => diagrams.show();
+  else if (key === 'f7') action = () => (diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible()) ? diagrams.code() : diagrams.show();
+  else if (key === 'escape' && diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible()) action = () => diagrams.code();
   else if (key === 'f6') action = () => run(true);
   else if (key === 'f10') action = () => api.debug('paso');
 

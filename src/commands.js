@@ -1,10 +1,13 @@
 import { SnippetController2 } from 'monaco-editor/esm/vs/editor/contrib/snippet/browser/snippetController2';
+import { COMMAND_ICONS } from './command-icons.js';
+
+export { COMMAND_ICONS };
 
 export const COMMANDS_DATA = [
   {
     id: 'escribir',
     name: 'Escribir',
-    icon: '/commands/escribir.png',
+    icon: COMMAND_ICONS['escribir'] || './commands/escribir.png',
     badge: 'Salida',
     desc: 'Muestra información o texto en la pantalla o terminal.',
     template: 'Escribir ${1:/*expresiones*/};',
@@ -16,7 +19,7 @@ export const COMMANDS_DATA = [
   {
     id: 'leer',
     name: 'Leer',
-    icon: '/commands/leer.png',
+    icon: COMMAND_ICONS['leer'] || './commands/leer.png',
     badge: 'Entrada',
     desc: 'Recibe datos desde el usuario y los guarda en variables.',
     template: 'Leer ${1:variable};',
@@ -28,7 +31,7 @@ export const COMMANDS_DATA = [
   {
     id: 'asignar',
     name: 'Asignar',
-    icon: '/commands/asignar.png',
+    icon: COMMAND_ICONS['asignar'] || './commands/asignar.png',
     badge: 'Cálculo',
     desc: 'Guarda el resultado de una expresión en una variable.',
     template: '${1:variable} <- ${2:expresion};',
@@ -40,7 +43,7 @@ export const COMMANDS_DATA = [
   {
     id: 'si',
     name: 'Si-Entonces',
-    icon: '/commands/si.png',
+    icon: COMMAND_ICONS['si'] || './commands/si.png',
     badge: 'Condición',
     desc: 'Bifurcación lógica condicional (Si / SiNo).',
     template: 'Si ${1:expresion_logica} Entonces\n\t${2:// acciones por verdadero}\nSiNo\n\t${3:// acciones por falso}\nFinSi',
@@ -52,7 +55,7 @@ export const COMMANDS_DATA = [
   {
     id: 'segun',
     name: 'Según',
-    icon: '/commands/segun.png',
+    icon: COMMAND_ICONS['segun'] || './commands/segun.png',
     badge: 'Selección',
     desc: 'Estructura condicional múltiple (switch / case).',
     template: 'Segun ${1:variable_numerica} Hacer\n\t${2:1}:\n\t\t${3:// opcion 1}\n\t${4:2}:\n\t\t${5:// opcion 2}\n\t${6:3}:\n\t\t${7:// opcion 3}\n\tDe Otro Modo:\n\t\t${8:// secuencia por defecto}\nFinSegun',
@@ -64,7 +67,7 @@ export const COMMANDS_DATA = [
   {
     id: 'mientras',
     name: 'Mientras',
-    icon: '/commands/mientras.png',
+    icon: COMMAND_ICONS['mientras'] || './commands/mientras.png',
     badge: 'Bucle',
     desc: 'Repite un bloque mientras la condición sea verdadera.',
     template: 'Mientras ${1:expresion_logica} Hacer\n\t${2:// secuencia de acciones}\nFinMientras',
@@ -76,7 +79,7 @@ export const COMMANDS_DATA = [
   {
     id: 'repetir',
     name: 'Repetir',
-    icon: '/commands/repetir.png',
+    icon: COMMAND_ICONS['repetir'] || './commands/repetir.png',
     badge: 'Bucle',
     desc: 'Repite al menos una vez hasta que la condición sea cierta.',
     template: 'Repetir\n\t${1:// secuencia de acciones}\nHasta Que ${2:expresion_logica}',
@@ -88,7 +91,7 @@ export const COMMANDS_DATA = [
   {
     id: 'para',
     name: 'Para',
-    icon: '/commands/para.png',
+    icon: COMMAND_ICONS['para'] || './commands/para.png',
     badge: 'Bucle',
     desc: 'Bucle con variable contadora (for).',
     template: 'Para ${1:variable_numerica} <- ${2:valor_inicial} Hasta ${3:valor_final} Con Paso ${4:paso} Hacer\n\t${5:// secuencia de acciones}\nFinPara',
@@ -100,7 +103,7 @@ export const COMMANDS_DATA = [
   {
     id: 'funcion',
     name: 'Función',
-    icon: '/commands/funcion.png',
+    icon: COMMAND_ICONS['funcion'] || './commands/funcion.png',
     badge: 'Módulo',
     desc: 'Subproceso o función modular con parámetros.',
     template: 'Funcion ${1:variable_retorno} <- ${2:NombreFuncion} ( ${3:argumentos} )\n\t${4:// secuencia de acciones}\nFinFuncion\n',
@@ -210,7 +213,7 @@ export function createCommandsManager({ editor, getProfile, onInserted, toast })
              title="${cmd.help} (Haz clic o arrastra al editor)">
           <div class="command-card-drag-hint">⋮⋮</div>
           <div class="command-icon-box">
-            <img src="${cmd.icon}" alt="${cmd.name}" class="command-diagram-img" draggable="false" />
+            <img src="${cmd.icon}" alt="${cmd.name}" class="command-diagram-img" draggable="false" onerror="this.onerror=null; this.src='./commands/' + '${cmd.id}' + '.png'" />
           </div>
           <div class="command-card-details">
             <div class="command-card-title-row">

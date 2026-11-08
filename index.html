@@ -87,10 +87,11 @@
           <div id="live-active-bar" class="live-active-bar hidden"></div>
           <div id="editor"></div>
           <section id="diagram-view" class="diagram-view hidden">
-            <div class="diagram-toolbar"><button id="flow-code" class="secondary">Volver al código</button><select id="flow-process" aria-label="Proceso del diagrama"></select><select id="flow-style" aria-label="Estilo del diagrama"><option value="classic">Flujograma clásico</option><option value="nassi">Nassi–Shneiderman</option></select><button id="flow-refresh" title="Actualizar diagrama">↻</button><button id="flow-minus" aria-label="Alejar diagrama">−</button><span id="flow-zoom">100%</span><button id="flow-plus" aria-label="Acercar diagrama">+</button><button id="flow-fit">Ajustar ancho</button><button id="flow-fit-all">Ver completo</button><button id="flow-svg">SVG</button><button id="flow-png">PNG</button></div>
+            <div class="diagram-toolbar"><button id="flow-code" class="flow-code-btn" title="Volver al código · Esc"><i data-lucide="code-2"></i><span>Volver al código</span><kbd>Esc</kbd></button><select id="flow-process" aria-label="Proceso del diagrama"></select><select id="flow-style" aria-label="Estilo del diagrama"><option value="classic">Flujograma clásico</option><option value="nassi">Nassi–Shneiderman</option></select><button id="flow-refresh" title="Actualizar diagrama">↻</button><button id="flow-minus" aria-label="Alejar diagrama">−</button><span id="flow-zoom">100%</span><button id="flow-plus" aria-label="Acercar diagrama">+</button><button id="flow-fit">Ajustar ancho</button><button id="flow-fit-all">Ver completo</button><button id="flow-svg">SVG</button><button id="flow-png">PNG</button></div>
+            <div id="diagram-command-bar" class="diagram-command-bar"></div>
             <p id="flow-status" role="status">Genera un diagrama desde el código del archivo activo.</p>
             <div id="diagram-scroll"><div id="diagram-canvas"></div></div>
-            <div class="diagram-legend">Óvalo: inicio/fin · Rectángulo: proceso · Rombo: decisión · Paralelogramo: entrada/salida · Haz clic en un bloque para ir al código.</div>
+            <div class="diagram-legend">Óvalo: inicio/fin · Rectángulo: proceso · Rombo: decisión · Paralelogramo: entrada/salida · Haz clic en un bloque para ir al código · Arrastra comandos o pulsa botones arriba para programar en el diagrama.</div>
           </section>
         </div>
         <div class="panel-resizer" id="panel-resizer" role="separator" aria-label="Tamaño de la terminal" aria-orientation="horizontal" tabindex="0" title="Arrastra para ajustar la consola"></div>
