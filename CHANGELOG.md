@@ -1,5 +1,16 @@
 # Cambios
 
+## 0.4.0 — 2026-11-07
+
+- Módulos de comandos arrastrables de PSeInt: panel lateral con los 9 comandos oficiales (Escribir, Leer, Asignar, Si-Entonces, Según, Mientras, Repetir, Para, Función) con diagramas representativos en alta resolución mediante data URIs base64, inserción rápida por clic, drag & drop al editor y variantes con Shift.
+- Programación interactiva desde el diagrama de flujo: barra superior de inserción rápida para construir código directamente desde el flujograma, hover distintivo y navegación con clic desde bloques al código.
+- Aula en Vivo (Live Share): modo espectador colaborativo para clases de programación con sincronización de código, cursor y ejecución; código numérico único de 6 dígitos, código QR escaneable y lista de estudiantes conectados.
+- Catálogo de extensiones bajo demanda: extensiones declarativas disponibles para explorar e instalar desde la app sin sobrecargar la instalación inicial; primera extensión oficial para Discord Rich Presence.
+- Atajos profesionales de teclado estilo Visual Studio Code: mover líneas o bloques con Alt + ↑/↓, duplicar con Shift + Alt + ↑/↓, eliminar con Ctrl + Shift + K, multicursor con Ctrl + D / Ctrl + Alt + ↑/↓, ajuste de línea con Alt + Z y zoom de fuente con Ctrl + +/-.
+- Tres interfaces / skins intercambiables al instante: Moderna Studio ergonómica, Clásica PSeInt fiel al diseño original wxWidgets con colores y biseles 3D, y Clásica Studio para regresar a la apariencia anterior.
+- Sistema de Ventanas Flotantes Multiventana (MDI): terminal y flujograma desacoplables, arrastre para sacar a ventana independiente (tear-off), redimensión en 8 direcciones, minimizar a barra de tareas integrada y apertura automática en modo clásico PSeInt.
+- Suite de pruebas ampliada a 39 tests automatizados cubriendo comandos, extensiones, aula en vivo, atajos y gestor de ventanas.
+
 ## 0.3.0 — 2026-10-24
 
 - Diagramas clásicos y Nassi–Shneiderman basados en la salida canónica de PSeInt.

@@ -4,15 +4,16 @@ Un IDE de pseudocódigo para Windows con el **motor real de PSeInt**, un editor 
 
 <p align="center"><img src="public/logo.svg" width="120" alt="PseudoStudio" /></p>
 
-**Versión 0.3.0 · preview · Windows x64.** Proyecto independiente, sin afiliación oficial con PSeInt.
+**Versión 0.4.0 · Windows x64.** Proyecto independiente, sin afiliación oficial con PSeInt.
 
 ![Editor con Comic Mono](docs/screenshots/editor.png)
 
 ![Personalización con Monokai](docs/screenshots/ajustes.png)
 
-## Usar la aplicación
+## Instalación y ejecución
 
-Extrae **todo** `PseudoStudio-0.3.0-Windows-x64.zip` en una carpeta permanente y abre `PseudoStudio.exe` dentro de ella. Conserva `resources` y el resto de archivos junto al ejecutable. No necesita instalar Node.js, PSeInt ni un compilador y no vuelve a extraerse al abrir. El acceso directo entregado ya apunta a esa carpeta permanente.
+- **Instalador recomendado:** Descarga y ejecuta `PseudoStudio-0.4.0-Windows-x64.exe` para instalar PseudoStudio en tu equipo con accesos directos automáticos.
+- **Versión portable:** Descarga `PseudoStudio-0.4.0-Windows-x64.zip`, extrae **todo** el archivo en una carpeta permanente y abre `PseudoStudio.exe` dentro de ella. Conserva `resources` y el resto de archivos junto al ejecutable. No necesita instalar Node.js, PSeInt ni un compilador.
 
 1. Edita el ejemplo inicial o abre un archivo `.psc`.
 2. Presiona **F5** para ejecutar. Cuando el algoritmo use `Leer`, introduce el valor en la terminal.

@@ -1,6 +1,6 @@
 {
   "name": "pseudostudio",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "IDE de pseudocódigo personalizable con el motor real de PSeInt",
   "private": true,
   "type": "module",
@@ -67,9 +67,19 @@
       }
     ],
     "win": {
-      "target": "zip",
+      "target": [
+        "nsis",
+        "zip"
+      ],
       "icon": "build/icon.ico",
       "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PseudoStudio"
     },
     "artifactName": "PseudoStudio-${version}-Windows-x64.${ext}"
   },
