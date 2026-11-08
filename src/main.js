@@ -19,6 +19,7 @@ import { createLayout } from './layout';
 import { createDiagrams } from './diagrams';
 import { createCommandsManager, insertCommandSnippet } from './commands';
 import { createLiveManager } from './live';
+import { registerVSCodeShortcuts, moveLineUp, moveLineDown, copyLineUp, copyLineDown, deleteLine } from './shortcuts';
 
 self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 const $ = id => document.getElementById(id);
@@ -127,6 +128,15 @@ const editor = monaco.editor.create($('editor'), {
   guides: { indentation: true },
   fixedOverflowWidgets: true,
   contextmenu: true
+});
+
+registerVSCodeShortcuts(editor, monaco, {
+  toggleWordWrap: () => {
+    settings.wordWrap = !settings.wordWrap;
+    applySettings();
+    syncSettingsForm();
+    toast('Ajuste de línea: ' + (settings.wordWrap ? 'Activado' : 'Desactivado'));
+  }
 });
 
 const layout = createLayout();
@@ -806,6 +816,18 @@ const commands = [
   ['Buscar en el archivo', 'Ctrl F', () => editor.getAction('actions.find').run()],
   ['Reemplazar en el archivo', 'Ctrl H', () => editor.getAction('editor.action.startFindReplaceAction').run()],
   ['Comentar / descomentar línea', 'Ctrl /', () => editor.getAction('editor.action.commentLine').run()],
+  ['Mover línea hacia arriba', 'Alt ↑', () => moveLineUp(editor, monaco)],
+  ['Mover línea hacia abajo', 'Alt ↓', () => moveLineDown(editor, monaco)],
+  ['Duplicar línea hacia arriba', 'Shift Alt ↑', () => copyLineUp(editor, monaco)],
+  ['Duplicar línea hacia abajo', 'Shift Alt ↓', () => copyLineDown(editor, monaco)],
+  ['Eliminar línea actual', 'Ctrl Shift K', () => deleteLine(editor, monaco)],
+  ['Insertar línea debajo', 'Ctrl Enter', () => editor.getAction('editor.action.insertLineAfter')?.run()],
+  ['Insertar línea arriba', 'Ctrl Shift Enter', () => editor.getAction('editor.action.insertLineBefore')?.run()],
+  ['Seleccionar siguiente coincidencia', 'Ctrl D', () => editor.getAction('editor.action.addSelectionToNextFindMatch')?.run()],
+  ['Alternar ajuste de línea (Word Wrap)', 'Alt Z', () => { settings.wordWrap = !settings.wordWrap; applySettings(); syncSettingsForm(); toast('Ajuste de línea: ' + (settings.wordWrap ? 'Activado' : 'Desactivado')); }],
+  ['Agregar cursor arriba', 'Ctrl Alt ↑', () => editor.getAction('editor.action.insertCursorAbove')?.run()],
+  ['Agregar cursor abajo', 'Ctrl Alt ↓', () => editor.getAction('editor.action.insertCursorBelow')?.run()],
+  ['Seleccionar toda la línea', 'Ctrl L', () => editor.getAction('expandLineSelection')?.run()],
   ['Aumentar tamaño de fuente (Zoom +)', 'Ctrl +', () => { settings.fontSize = Math.min(32, settings.fontSize + 1); applySettings(); syncSettingsForm(); }],
   ['Reducir tamaño de fuente (Zoom -)', 'Ctrl -', () => { settings.fontSize = Math.max(10, settings.fontSize - 1); applySettings(); syncSettingsForm(); }],
   ['Restablecer zoom de fuente', 'Ctrl 0', () => { settings.fontSize = 16; applySettings(); syncSettingsForm(); }],
@@ -1110,6 +1132,50 @@ window.addEventListener('keydown', event => {
   else if (ctrl && event.shiftKey && (key === 'p' || event.code === 'KeyP')) action = showCommands;
   else if (event.key === 'F1') action = showCommands;
   else if (key === 'f4' || (ctrl && event.altKey && key === 'c')) action = () => layout.toggle('commands');
+  else if (event.altKey && !ctrl && (event.key === 'ArrowUp' || event.code === 'ArrowUp')) {
+    action = () => {
+      if (event.shiftKey) copyLineUp(editor, monaco);
+      else moveLineUp(editor, monaco);
+    };
+  }
+  else if (event.altKey && !ctrl && (event.key === 'ArrowDown' || event.code === 'ArrowDown')) {
+    action = () => {
+      if (event.shiftKey) copyLineDown(editor, monaco);
+      else moveLineDown(editor, monaco);
+    };
+  }
+  else if (event.altKey && !ctrl && !event.shiftKey && (key === 'z' || event.code === 'KeyZ')) {
+    action = () => {
+      settings.wordWrap = !settings.wordWrap;
+      applySettings();
+      syncSettingsForm();
+      toast('Ajuste de línea: ' + (settings.wordWrap ? 'Activado' : 'Desactivado'));
+    };
+  }
+  else if (event.altKey && event.shiftKey && !ctrl && (key === 'f' || event.code === 'KeyF')) {
+    action = () => editor.getAction('editor.action.formatDocument')?.run();
+  }
+  else if (ctrl && event.shiftKey && (key === 'k' || event.code === 'KeyK')) {
+    action = () => deleteLine(editor, monaco);
+  }
+  else if (ctrl && !event.shiftKey && !event.altKey && event.key === 'Enter') {
+    action = () => editor.getAction('editor.action.insertLineAfter')?.run();
+  }
+  else if (ctrl && event.shiftKey && !event.altKey && event.key === 'Enter') {
+    action = () => editor.getAction('editor.action.insertLineBefore')?.run();
+  }
+  else if (ctrl && !event.shiftKey && !event.altKey && (key === 'd' || event.code === 'KeyD')) {
+    action = () => editor.getAction('editor.action.addSelectionToNextFindMatch')?.run();
+  }
+  else if (ctrl && !event.shiftKey && !event.altKey && (key === 'l' || event.code === 'KeyL')) {
+    action = () => editor.getAction('expandLineSelection')?.run();
+  }
+  else if (ctrl && event.altKey && (event.key === 'ArrowUp' || event.code === 'ArrowUp')) {
+    action = () => editor.getAction('editor.action.insertCursorAbove')?.run();
+  }
+  else if (ctrl && event.altKey && (event.key === 'ArrowDown' || event.code === 'ArrowDown')) {
+    action = () => editor.getAction('editor.action.insertCursorBelow')?.run();
+  }
   else if (ctrl && (key === '+' || key === '=')) {
     action = () => {
       settings.fontSize = Math.min(32, settings.fontSize + 1);
