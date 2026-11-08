@@ -1022,3 +1022,468 @@
   outline-offset: -4px;
   background: rgba(185, 163, 255, 0.04) !important;
 }
+
+/* =========================================================
+   SISTEMA DE VENTANAS FLOTANTES (MDI / VENTANAS INDEPENDIENTES)
+   ========================================================= */
+.floating-window {
+  position: fixed;
+  z-index: 1000;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 320px;
+  min-height: 180px;
+  touch-action: none;
+  transition: box-shadow 0.2s ease;
+}
+.floating-window.is-dragging {
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65), 0 0 0 2px var(--accent);
+  opacity: 0.96;
+}
+.floating-window.is-maximized {
+  border-radius: 0 !important;
+}
+.floating-window.is-minimized {
+  display: none !important;
+}
+.floating-win-header {
+  height: 38px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+.floating-win-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.floating-win-title svg {
+  width: 15px;
+  height: 15px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.floating-win-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.win-btn-action {
+  width: 27px;
+  height: 25px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.win-btn-action:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.win-btn-action.win-btn-close:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+.win-btn-action svg {
+  width: 13px;
+  height: 13px;
+}
+.floating-win-body {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--surface);
+}
+.floating-win-body > .bottom-panel {
+  flex: 1;
+  border-top: 0;
+  max-height: none;
+  height: 100% !important;
+}
+.floating-win-body > .diagram-view {
+  flex: 1;
+  height: 100% !important;
+  border: 0;
+}
+
+/* Tiradores de redimensionado de ventanas flotantes */
+.win-resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+.handle-n { top: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
+.handle-s { bottom: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
+.handle-e { right: 0; top: 8px; bottom: 8px; width: 6px; cursor: ew-resize; }
+.handle-w { left: 0; top: 8px; bottom: 8px; width: 6px; cursor: ew-resize; }
+.handle-ne { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+.handle-nw { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+.handle-se { bottom: 0; right: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+.handle-sw { bottom: 0; left: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+
+body.window-resizing, body.window-resizing * {
+  user-select: none !important;
+}
+
+/* Barra de Ventanas Minimizadas */
+.floating-taskbar {
+  position: fixed;
+  bottom: 28px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  z-index: 1200;
+  pointer-events: none;
+}
+.min-pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.min-pill:hover {
+  background: var(--accent);
+  color: #111;
+  transform: translateY(-2px);
+}
+.min-pill svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Selector de Modo de Interfaz en Barra Superior */
+.ui-mode-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ui-mode-wrap:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.ui-mode-wrap select {
+  background: transparent;
+  border: 0;
+  padding: 3px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  outline: none;
+}
+.ui-mode-wrap svg {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+}
+
+/* Tarjetas de Selección en Ajustes */
+.ui-mode-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 10px 0 16px;
+}
+.ui-mode-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ui-mode-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.ui-mode-card input[type=radio] {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+.ui-mode-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.ui-mode-card-title svg {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+}
+.ui-mode-card-desc {
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* =========================================================
+   SKIN: MODERNA STUDIO (Comodidad, estética VS Code y amplitud)
+   ========================================================= */
+.ui-mode-modern {
+  --editor: #161722;
+  --surface: #1a1b26;
+  --bg: #12131b;
+}
+.ui-mode-modern #editor {
+  padding-top: 8px;
+}
+.ui-mode-modern .toolbar {
+  background: rgba(22, 24, 34, 0.92);
+  backdrop-filter: blur(12px);
+  padding: 0 16px;
+}
+.ui-mode-modern .run-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4) !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  padding: 0 14px !important;
+  transition: all 0.18s ease !important;
+}
+.ui-mode-modern .run-button:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6) !important;
+  transform: translateY(-1px);
+}
+.ui-mode-modern .tab {
+  border-radius: 6px 6px 0 0;
+  margin-right: 3px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.ui-mode-modern .tab.active {
+  background: var(--editor);
+  border-color: var(--border);
+  border-bottom-color: var(--editor);
+}
+.ui-mode-modern .breadcrumbs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 14px;
+  font-size: 11.5px;
+}
+.ui-mode-modern .floating-window {
+  background: rgba(26, 27, 38, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(185, 163, 255, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================================
+   SKIN: CLÁSICA ORIGINAL PSEINT (Look Windows / wxWidgets PSeInt)
+   ========================================================= */
+.ui-mode-classic-pseint {
+  --bg: #ece9d8;
+  --surface: #f4f3ec;
+  --sidebar: #f0ede4;
+  --editor: #ffffff;
+  --border: #b8b5a8;
+  --text: #1a1a1a;
+  --muted: #5a574f;
+  --accent: #003399;
+  --accent-soft: rgba(0, 51, 153, 0.1);
+  --green: #008000;
+  --red: #c00000;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif !important;
+  color-scheme: light !important;
+}
+.ui-mode-classic-pseint .titlebar {
+  background: linear-gradient(180deg, #fbfbf9 0%, #ece9d8 100%);
+  border-bottom: 1px solid #b8b5a8;
+  color: #1a1a1a;
+}
+.ui-mode-classic-pseint .brand-mark {
+  background: #003399;
+  color: #ffffff;
+}
+.ui-mode-classic-pseint .toolbar {
+  background: linear-gradient(180deg, #f6f5ea 0%, #e8e5d8 100%);
+  border-bottom: 1px solid #b8b5a8;
+  padding: 3px 8px;
+}
+.ui-mode-classic-pseint .toolbar button {
+  background: linear-gradient(180deg, #ffffff 0%, #ece9d8 100%);
+  border: 1px solid #b8b5a8;
+  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #d0cdc3 inset;
+  color: #1a1a1a;
+  border-radius: 3px;
+  font-size: 11.5px;
+  padding: 3px 8px;
+}
+.ui-mode-classic-pseint .toolbar button:hover {
+  background: #ffffff;
+  border-color: #003399;
+  color: #003399;
+}
+.ui-mode-classic-pseint .toolbar button:active {
+  background: #dedbd0;
+  box-shadow: inset 1px 1px 2px #908d83;
+}
+.ui-mode-classic-pseint .run-button {
+  background: linear-gradient(180deg, #dcfce7 0%, #86efac 100%) !important;
+  border: 1px solid #16a34a !important;
+  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #15803d inset !important;
+  color: #14532d !important;
+  font-weight: 700 !important;
+}
+.ui-mode-classic-pseint .tabs {
+  background: #dcd8cf;
+  border-bottom: 1px solid #b8b5a8;
+  padding-top: 4px;
+  padding-left: 6px;
+}
+.ui-mode-classic-pseint .tab {
+  background: #e8e5dc;
+  border: 1px solid #b8b5a8;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  color: #404040;
+  margin-right: 3px;
+  height: 30px;
+  font-size: 11.5px;
+}
+.ui-mode-classic-pseint .tab.active {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-bottom: 1px solid #ffffff;
+  margin-bottom: -1px;
+}
+.ui-mode-classic-pseint .tab.active:before {
+  display: none;
+}
+.ui-mode-classic-pseint .breadcrumbs {
+  background: #ffffff;
+  border-bottom: 1px solid #e0ddd2;
+  color: #555555;
+}
+.ui-mode-classic-pseint .command-card {
+  background: #ffffff !important;
+  border: 1px solid #c5c2b5 !important;
+  border-radius: 3px !important;
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.06) !important;
+  margin-bottom: 5px !important;
+}
+.ui-mode-classic-pseint .command-card:hover {
+  border-color: #003399 !important;
+  background: #f7f9fd !important;
+}
+.ui-mode-classic-pseint .command-card-name {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+.ui-mode-classic-pseint .command-icon-box {
+  background: #ffffff !important;
+  border-right: 1px solid #e0ddd2 !important;
+}
+.ui-mode-classic-pseint .statusbar {
+  background: #ece9d8;
+  border-top: 1px solid #b8b5a8;
+  color: #1a1a1a;
+}
+.ui-mode-classic-pseint .statusbar span,
+.ui-mode-classic-pseint .statusbar button {
+  border: 1px inset #d0cdc3;
+  background: #f4f3ec;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 11px;
+  color: #1a1a1a;
+}
+.ui-mode-classic-pseint .floating-window {
+  background: #ece9d8;
+  border: 1px solid #808080;
+  border-radius: 4px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+}
+.ui-mode-classic-pseint .floating-win-header {
+  background: linear-gradient(90deg, #0a246a 0%, #a6caf0 100%);
+  color: #ffffff;
+  border-bottom: 1px solid #000080;
+}
+.ui-mode-classic-pseint .floating-win-title {
+  color: #ffffff;
+  font-weight: 700;
+}
+.ui-mode-classic-pseint .floating-win-title svg {
+  color: #ffffff;
+}
+.ui-mode-classic-pseint .win-btn-action {
+  background: #d4d0c8;
+  border: 1px outset #ffffff;
+  color: #000000;
+  border-radius: 2px;
+}
+.ui-mode-classic-pseint .win-btn-action:hover {
+  background: #ffffff;
+}
+.ui-mode-classic-pseint .win-btn-action.win-btn-close:hover {
+  background: #cc0000 !important;
+  color: #ffffff !important;
+}
+.ui-mode-classic-pseint #console-panel {
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+.ui-mode-classic-pseint #console-output {
+  color: #ffffff;
+}
+
+/* =========================================================
+   SKIN: CLÁSICA PSEUDOSTUDIO (Preservada idéntica a v0.3.0)
+   ========================================================= */
+.ui-mode-classic-studio {
+  /* Mantiene los valores estándar base de PseudoStudio */
+}
+

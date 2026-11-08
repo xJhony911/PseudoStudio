@@ -1,7 +1,7 @@
 import { parseDiagram, renderDiagram } from './flowchart';
 import { COMMANDS_DATA } from './commands';
 
-export function createDiagrams({ api, getDocument, getProfile, onProblems, onLine, toast, editor, onModeChange, refreshIcons }) {
+export function createDiagrams({ api, getDocument, getProfile, onProblems, onLine, toast, editor, onModeChange, refreshIcons, isFloating, onPopout, onDock }) {
   const $ = id => document.getElementById(id);
   let visible = false, ticket = 0, timer, programs = [], generated = null, source = null, scale = 1, debugLine = null, selectedLine = null;
   const matches = doc => source && doc && source.id === doc.id && source.content === doc.content && source.profile === getProfile();
@@ -26,7 +26,10 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
   function restoreStatus() {
     if (programs.length && generated) {
       const program = programs[Number($('flow-process').value)] || programs[0];
-      if (program) $('flow-status').textContent = `${program.name} · ${generated.nodes} bloques · Línea ${program.line} a ${program.endLine}`;
+      if (program) {
+        $('flow-status').textContent = `${program.name} · ${generated.nodes} bloques · Línea ${program.line} a ${program.endLine}`;
+        if ($('float-diagram-title')) $('float-diagram-title').textContent = `Diagrama de Flujo - ${program.name}`;
+      }
     }
   }
 
@@ -81,16 +84,23 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
     $('diagram-view').classList.add('hidden');
     $('editor').classList.remove('hidden');
     $('flow-open').classList.remove('active');
+    if (typeof onDock === 'function') onDock();
     if (typeof onModeChange === 'function') onModeChange(false);
   }
 
   async function show() {
     visible = true;
-    $('editor').classList.add('hidden');
-    $('diagram-view').classList.remove('hidden');
-    $('flow-open').classList.add('active');
     renderCommandBar();
     setupDiagramDrop();
+    const shouldFloat = typeof isFloating === 'function' && isFloating();
+    if (shouldFloat) {
+      if (typeof onPopout === 'function') onPopout();
+      $('editor').classList.remove('hidden');
+    } else {
+      $('editor').classList.add('hidden');
+      $('diagram-view').classList.remove('hidden');
+    }
+    $('flow-open').classList.add('active');
     if (typeof onModeChange === 'function') onModeChange(true);
     if (matches(getDocument()) && programs.length) paint();
     else await refresh();

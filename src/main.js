@@ -20,6 +20,7 @@ import { createDiagrams } from './diagrams';
 import { createCommandsManager, insertCommandSnippet } from './commands';
 import { createLiveManager } from './live';
 import { registerVSCodeShortcuts, moveLineUp, moveLineDown, copyLineUp, copyLineDown, deleteLine } from './shortcuts';
+import { createWindowManager } from './windows';
 
 self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 const $ = id => document.getElementById(id);
@@ -30,6 +31,9 @@ const refreshIcons = () => createIcons({ icons, attrs: { 'aria-hidden': 'true' }
 const readStore = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
 const defaults = {
   theme: 'obsidian',
+  uiMode: 'modern',
+  floatingTerminal: false,
+  floatingDiagram: false,
   fontFamily: 'Comic Mono',
   fontSize: 16,
   lineHeight: 1.7,
@@ -140,6 +144,13 @@ registerVSCodeShortcuts(editor, monaco, {
 });
 
 const layout = createLayout();
+
+const windowManager = createWindowManager({
+  onDockChange: () => renderFiles(),
+  onDiagramLine: showLine,
+  onDiagramClose: () => diagrams.code()
+});
+
 const diagrams = createDiagrams({
   api,
   getDocument: () => current ? { id: current.id, name: current.name, content: current.model.getValue(), model: current.model } : null,
@@ -149,8 +160,13 @@ const diagrams = createDiagrams({
   toast,
   editor,
   onModeChange: () => renderFiles(),
-  refreshIcons
+  refreshIcons,
+  isFloating: () => windowManager.isDiagramFloating() || settings.floatingDiagram || settings.uiMode === 'classic-pseint',
+  onPopout: () => windowManager.popoutDiagram(),
+  onDock: () => windowManager.dockDiagram()
 });
+
+windowManager.init();
 
 const commandsManager = createCommandsManager({
   editor,
@@ -496,7 +512,12 @@ function consumeOutput(chunk) {
     if (start > 0) { appendOutput(terminalPending.slice(0, start)); terminalPending = terminalPending.slice(start); }
     if (terminalPending.startsWith('\x1b[zl') || terminalPending.startsWith('\x1b[zk')) {
       inputKind = terminalPending.startsWith('\x1b[zk') ? 'key' : 'line';
-      terminalPending = terminalPending.slice(4); showPanel('console');
+      terminalPending = terminalPending.slice(4);
+      if (windowManager.isTerminalFloating() || settings.floatingTerminal || settings.uiMode === 'classic-pseint') {
+        windowManager.showFloating('terminal');
+      } else {
+        showPanel('console');
+      }
       $('console-input').placeholder = inputKind === 'key' ? 'Pulsa Enter para continuar…' : 'Escribe el dato solicitado y pulsa Enter…';
       $('input-form').classList.remove('hidden'); $('console-input').focus();
       $('console-panel').scrollTop = $('console-panel').scrollHeight;
@@ -526,7 +547,13 @@ async function run(debug = false) {
     $('console-output').textContent = ''; $('terminal-welcome').classList.add('hidden'); $('input-form').classList.add('hidden');
     $('run-state').innerHTML = '<span class="tiny-dot"></span>' + (debug ? 'Depurando' : 'Ejecutando');
     $('stop').classList.remove('hidden'); $('run').classList.add('hidden');
-    editor.updateOptions({ readOnly: debug }); showPanel(debug ? 'debug' : 'console'); renderVariables();
+    editor.updateOptions({ readOnly: debug });
+    if (windowManager.isTerminalFloating() || settings.floatingTerminal || settings.uiMode === 'classic-pseint') {
+      windowManager.showFloating('terminal');
+    } else {
+      showPanel(debug ? 'debug' : 'console');
+    }
+    renderVariables();
     await api.run(code, { profile: settings.profile, debug, watches: watchNames });
   } catch (err) { finishRun(); throw err; }
 }
@@ -563,7 +590,20 @@ function consumeDebug(line) {
 }
 
 function applySettings() {
-  const t = allThemes(extensions).find(t => t.id === settings.theme) || themes[0];
+  const mode = settings.uiMode || 'modern';
+  const appEl = $('app') || document.body;
+  appEl.classList.remove('ui-mode-modern', 'ui-mode-classic-pseint', 'ui-mode-classic-studio');
+  appEl.classList.add('ui-mode-' + mode);
+  document.documentElement.classList.remove('ui-mode-modern', 'ui-mode-classic-pseint', 'ui-mode-classic-studio');
+  document.documentElement.classList.add('ui-mode-' + mode);
+
+  if ($('ui-mode-select')) $('ui-mode-select').value = mode;
+
+  let themeId = settings.theme;
+  if (mode === 'classic-pseint' && (!settings.theme || settings.theme === 'obsidian')) {
+    themeId = 'pseint-classic';
+  }
+  const t = allThemes(extensions).find(t => t.id === themeId) || themes[0];
   for (const [key, value] of Object.entries(t.ui)) document.documentElement.style.setProperty('--' + key, value);
   const accent = settings.accent || t.ui.accent;
   document.documentElement.style.setProperty('--accent', accent);
@@ -581,7 +621,11 @@ function applySettings() {
     cursorBlinking: settings.cursorBlinking || 'smooth',
     renderWhitespace: settings.renderWhitespace || 'none',
     wordWrap: settings.wordWrap ? 'on' : 'off',
-    bracketPairColorization: { enabled: settings.bracketColors }
+    bracketPairColorization: { enabled: settings.bracketColors },
+    padding: { top: mode === 'modern' ? 12 : 6, bottom: mode === 'modern' ? 14 : 6 },
+    smoothScrolling: mode === 'modern',
+    cursorSmoothCaretAnimation: mode === 'modern' ? 'on' : 'off',
+    lineNumbersMinChars: 3
   });
   for (const doc of documents) doc.model.updateOptions({ tabSize: settings.tabSize, insertSpaces: true });
   $('theme-status').textContent = t.name;
@@ -597,6 +641,12 @@ function renderThemeGrid() {
 
 function syncSettingsForm() {
   renderThemeGrid();
+  document.querySelectorAll('input[name="pref-ui-mode"]').forEach(r => {
+    r.checked = (r.value === (settings.uiMode || 'modern'));
+  });
+  if ($('pref-floating-terminal')) $('pref-floating-terminal').checked = !!settings.floatingTerminal;
+  if ($('pref-floating-diagram')) $('pref-floating-diagram').checked = !!settings.floatingDiagram;
+  if ($('ui-mode-select')) $('ui-mode-select').value = settings.uiMode || 'modern';
   $('font-family').value = settings.fontFamily;
   $('font-size').value = settings.fontSize;
   $('font-size-label').value = settings.fontSize + ' px';
@@ -618,6 +668,21 @@ function syncSettingsForm() {
   ]) {
     if ($(id)) $(id).checked = settings[key] !== false;
   }
+}
+
+function setUiMode(mode) {
+  const prevMode = settings.uiMode;
+  settings.uiMode = mode;
+  if (mode === 'classic-pseint') {
+    settings.floatingTerminal = true;
+    settings.floatingDiagram = true;
+    if (!windowManager.isTerminalFloating()) windowManager.popoutTerminal();
+  } else if (prevMode === 'classic-pseint') {
+    if (settings.theme === 'pseint-classic') settings.theme = 'obsidian';
+  }
+  applySettings();
+  syncSettingsForm();
+  toast('Modo de interfaz: ' + (mode === 'modern' ? 'Moderna Studio' : mode === 'classic-pseint' ? 'Clásica PSeInt' : 'Clásica Studio'));
 }
 
 function settingsTab(tab) {
@@ -809,6 +874,11 @@ async function askAI(question = $('ai-question').value.trim()) {
 }
 
 const commands = [
+  ['Interfaz: Cambiar a Moderna Studio', '', () => setUiMode('modern')],
+  ['Interfaz: Cambiar a Clásica PSeInt Original', '', () => setUiMode('classic-pseint')],
+  ['Interfaz: Cambiar a Clásica PseudoStudio', '', () => setUiMode('classic-studio')],
+  ['Ventana: Desacoplar / Acoplar Terminal', 'Ctrl Alt T', () => windowManager.isTerminalFloating() ? windowManager.dockTerminal() : windowManager.popoutTerminal()],
+  ['Ventana: Desacoplar / Acoplar Diagrama', 'Ctrl Alt D', () => windowManager.isDiagramFloating() ? windowManager.dockDiagram() : windowManager.popoutDiagram()],
   ['Aula en vivo: Iniciar transmisión o unirse', 'Ctrl Alt L', () => liveManager.showLiveDialog()],
   ['Aula en vivo: Cambiar nombre de usuario', '', () => $('username-dialog').showModal()],
   ['Mostrar / ocultar comandos PSeInt', 'F4', () => layout.toggle('commands')],
@@ -1049,6 +1119,40 @@ for (const [id, key, type] of [
   }
 }
 
+if ($('ui-mode-select')) {
+  $('ui-mode-select').onchange = e => setUiMode(e.target.value);
+}
+
+document.querySelectorAll('input[name="pref-ui-mode"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    if (radio.checked) setUiMode(radio.value);
+  });
+});
+
+if ($('pref-floating-terminal')) {
+  $('pref-floating-terminal').addEventListener('change', e => {
+    settings.floatingTerminal = e.target.checked;
+    persistSettings();
+    if (settings.floatingTerminal && !windowManager.isTerminalFloating()) {
+      windowManager.popoutTerminal();
+    } else if (!settings.floatingTerminal && windowManager.isTerminalFloating()) {
+      windowManager.dockTerminal();
+    }
+  });
+}
+
+if ($('pref-floating-diagram')) {
+  $('pref-floating-diagram').addEventListener('change', e => {
+    settings.floatingDiagram = e.target.checked;
+    persistSettings();
+    if (settings.floatingDiagram && !windowManager.isDiagramFloating()) {
+      windowManager.popoutDiagram();
+    } else if (!settings.floatingDiagram && windowManager.isDiagramFloating()) {
+      windowManager.dockDiagram();
+    }
+  });
+}
+
 if ($('settings-username')) {
   $('settings-username').addEventListener('input', e => {
     liveManager.setUsername(e.target.value);
@@ -1160,6 +1264,8 @@ window.addEventListener('keydown', event => {
   let action;
 
   if (ctrl && event.altKey && key === 'l') action = () => liveManager.showLiveDialog();
+  else if (ctrl && event.altKey && (key === 't' || event.code === 'KeyT')) action = () => windowManager.isTerminalFloating() ? windowManager.dockTerminal() : windowManager.popoutTerminal();
+  else if (ctrl && event.altKey && (key === 'd' || event.code === 'KeyD')) action = () => windowManager.isDiagramFloating() ? windowManager.dockDiagram() : windowManager.popoutDiagram();
   else if (ctrl && event.shiftKey && (key === 'p' || event.code === 'KeyP')) action = showCommands;
   else if (event.key === 'F1') action = showCommands;
   else if (key === 'f4' || (ctrl && event.altKey && key === 'c')) action = () => layout.toggle('commands');

@@ -28,6 +28,14 @@
         <button id="format-code" title="Formatear · Shift Alt F"><i data-lucide="list-indent-increase"></i>Formatear</button>
       </div>
       <div class="toolbar-right">
+        <div class="ui-mode-wrap" title="Modo de Interfaz: Moderna / Clásica PSeInt / Clásica Studio">
+          <i data-lucide="layout-template"></i>
+          <select id="ui-mode-select" aria-label="Modo de interfaz">
+            <option value="modern">Moderna Studio</option>
+            <option value="classic-pseint">Clásica PSeInt</option>
+            <option value="classic-studio">Clásica Studio</option>
+          </select>
+        </div>
         <select id="profile" aria-label="Perfil de lenguaje"><option value="Flexible">PSeInt · Flexible</option><option value="Estricto">PSeInt · Estricto</option></select>
         <button id="debug-run" title="Depurar · F6"><i data-lucide="bug"></i>Depurar</button>
         <button id="run" class="run-button" title="Ejecutar · F5"><i data-lucide="play"></i>Ejecutar<kbd>F5</kbd></button>
@@ -87,7 +95,7 @@
           <div id="live-active-bar" class="live-active-bar hidden"></div>
           <div id="editor"></div>
           <section id="diagram-view" class="diagram-view hidden">
-            <div class="diagram-toolbar"><button id="flow-code" class="flow-code-btn" title="Volver al código · Esc"><i data-lucide="code-2"></i><span>Volver al código</span><kbd>Esc</kbd></button><select id="flow-process" aria-label="Proceso del diagrama"></select><select id="flow-style" aria-label="Estilo del diagrama"><option value="classic">Flujograma clásico</option><option value="nassi">Nassi–Shneiderman</option></select><button id="flow-refresh" title="Actualizar diagrama">↻</button><button id="flow-minus" aria-label="Alejar diagrama">−</button><span id="flow-zoom">100%</span><button id="flow-plus" aria-label="Acercar diagrama">+</button><button id="flow-fit">Ajustar ancho</button><button id="flow-fit-all">Ver completo</button><button id="flow-svg">SVG</button><button id="flow-png">PNG</button></div>
+            <div class="diagram-toolbar"><button id="flow-code" class="flow-code-btn" title="Volver al código · Esc"><i data-lucide="code-2"></i><span>Volver al código</span><kbd>Esc</kbd></button><button id="flow-popout" class="icon-button" title="Desacoplar flujograma a ventana flotante" aria-label="Desacoplar diagrama"><i data-lucide="external-link"></i></button><select id="flow-process" aria-label="Proceso del diagrama"></select><select id="flow-style" aria-label="Estilo del diagrama"><option value="classic">Flujograma clásico</option><option value="nassi">Nassi–Shneiderman</option></select><button id="flow-refresh" title="Actualizar diagrama">↻</button><button id="flow-minus" aria-label="Alejar diagrama">−</button><span id="flow-zoom">100%</span><button id="flow-plus" aria-label="Acercar diagrama">+</button><button id="flow-fit">Ajustar ancho</button><button id="flow-fit-all">Ver completo</button><button id="flow-svg">SVG</button><button id="flow-png">PNG</button></div>
             <div id="diagram-command-bar" class="diagram-command-bar"></div>
             <p id="flow-status" role="status">Genera un diagrama desde el código del archivo activo.</p>
             <div id="diagram-scroll"><div id="diagram-canvas"></div></div>
@@ -96,7 +104,7 @@
         </div>
         <div class="panel-resizer" id="panel-resizer" role="separator" aria-label="Tamaño de la terminal" aria-orientation="horizontal" tabindex="0" title="Arrastra para ajustar la consola"></div>
         <section class="bottom-panel" id="bottom-panel">
-          <div class="panel-header"><div class="panel-tabs"><button data-panel="console" class="active">TERMINAL</button><button data-panel="problems">PROBLEMAS <span id="problem-count">0</span></button><button data-panel="debug">VARIABLES</button></div><div class="panel-actions"><span id="run-state"><span class="tiny-dot"></span>Listo para ejecutar</span><button id="panel-maximize" class="icon-button" title="Ampliar/restaurar terminal" aria-label="Ampliar terminal"><i data-lucide="maximize-2"></i></button><button id="panel-hide" class="icon-button" title="Ocultar terminal · Ctrl J" aria-label="Ocultar terminal"><i data-lucide="x"></i></button><button id="clear-console" class="icon-button" title="Limpiar terminal"><i data-lucide="trash-2"></i></button></div></div>
+          <div class="panel-header"><div class="panel-tabs"><button data-panel="console" class="active">TERMINAL</button><button data-panel="problems">PROBLEMAS <span id="problem-count">0</span></button><button data-panel="debug">VARIABLES</button></div><div class="panel-actions"><span id="run-state"><span class="tiny-dot"></span>Listo para ejecutar</span><button id="panel-popout" class="icon-button" title="Desacoplar terminal a ventana flotante" aria-label="Desacoplar terminal"><i data-lucide="external-link"></i></button><button id="panel-maximize" class="icon-button" title="Ampliar/restaurar terminal" aria-label="Ampliar terminal"><i data-lucide="maximize-2"></i></button><button id="panel-hide" class="icon-button" title="Ocultar terminal · Ctrl J" aria-label="Ocultar terminal"><i data-lucide="x"></i></button><button id="clear-console" class="icon-button" title="Limpiar terminal"><i data-lucide="trash-2"></i></button></div></div>
           <div id="console-panel" class="panel-body"><div class="terminal-welcome" id="terminal-welcome"><span class="terminal-logo">›_</span><div><b>Tu próxima idea empieza aquí.</b><p>Ejecuta tu algoritmo con <kbd>F5</kbd>. Su salida aparecerá en esta terminal.</p></div></div><pre id="console-output" aria-live="polite"></pre><form id="input-form" class="terminal-input hidden"><span>›</span><input id="console-input" autocomplete="off" placeholder="Escribe un valor y presiona Enter…" aria-label="Entrada del programa" /><button type="submit"><i data-lucide="corner-down-left"></i>Enviar</button></form></div>
           <div id="problems-panel" class="panel-body hidden"><div id="problems-list"></div></div>
           <div id="debug-panel" class="panel-body hidden"><div class="debug-controls"><button id="debug-step"><i data-lucide="step-forward"></i>Paso <kbd>F10</kbd></button><button id="debug-continue"><i data-lucide="play"></i>Continuar</button><button id="debug-pause"><i data-lucide="pause"></i>Pausar</button><span id="debug-position">Inicia la depuración para inspeccionar variables.</span></div><div id="variables-list"></div></div>
@@ -151,9 +159,93 @@
         <span>v0.3.0</span>
       </div>
     </footer>
+
+    <!-- Ventanas Flotantes Independientes (MDI / Pop-Out Windows) -->
+    <div id="float-win-terminal" class="floating-window hidden" data-win-id="terminal">
+      <div class="floating-win-header" id="float-win-terminal-header">
+        <div class="floating-win-title">
+          <i data-lucide="terminal"></i>
+          <span>Terminal de Ejecución - PSeInt</span>
+        </div>
+        <div class="floating-win-controls">
+          <button class="win-btn-action" id="float-terminal-dock" title="Acoplar al panel inferior"><i data-lucide="arrow-down-to-line"></i></button>
+          <button class="win-btn-action" id="float-terminal-min" title="Minimizar"><i data-lucide="minus"></i></button>
+          <button class="win-btn-action" id="float-terminal-max" title="Maximizar / Restaurar"><i data-lucide="square"></i></button>
+          <button class="win-btn-action win-btn-close" id="float-terminal-close" title="Cerrar"><i data-lucide="x"></i></button>
+        </div>
+      </div>
+      <div class="floating-win-body" id="float-terminal-body"></div>
+      <div class="win-resize-handle handle-n" data-direction="n"></div>
+      <div class="win-resize-handle handle-s" data-direction="s"></div>
+      <div class="win-resize-handle handle-e" data-direction="e"></div>
+      <div class="win-resize-handle handle-w" data-direction="w"></div>
+      <div class="win-resize-handle handle-ne" data-direction="ne"></div>
+      <div class="win-resize-handle handle-nw" data-direction="nw"></div>
+      <div class="win-resize-handle handle-se" data-direction="se"></div>
+      <div class="win-resize-handle handle-sw" data-direction="sw"></div>
+    </div>
+
+    <div id="float-win-diagram" class="floating-window hidden" data-win-id="diagram">
+      <div class="floating-win-header" id="float-win-diagram-header">
+        <div class="floating-win-title">
+          <i data-lucide="workflow"></i>
+          <span id="float-diagram-title">Diagrama de Flujo - PSeInt</span>
+        </div>
+        <div class="floating-win-controls">
+          <button class="win-btn-action" id="float-diagram-dock" title="Acoplar a pestaña"><i data-lucide="arrow-down-to-line"></i></button>
+          <button class="win-btn-action" id="float-diagram-min" title="Minimizar"><i data-lucide="minus"></i></button>
+          <button class="win-btn-action" id="float-diagram-max" title="Maximizar / Restaurar"><i data-lucide="square"></i></button>
+          <button class="win-btn-action win-btn-close" id="float-diagram-close" title="Cerrar"><i data-lucide="x"></i></button>
+        </div>
+      </div>
+      <div class="floating-win-body" id="float-diagram-body"></div>
+      <div class="win-resize-handle handle-n" data-direction="n"></div>
+      <div class="win-resize-handle handle-s" data-direction="s"></div>
+      <div class="win-resize-handle handle-e" data-direction="e"></div>
+      <div class="win-resize-handle handle-w" data-direction="w"></div>
+      <div class="win-resize-handle handle-ne" data-direction="ne"></div>
+      <div class="win-resize-handle handle-nw" data-direction="nw"></div>
+      <div class="win-resize-handle handle-se" data-direction="se"></div>
+      <div class="win-resize-handle handle-sw" data-direction="sw"></div>
+    </div>
+
+    <!-- Barra de Ventanas Minimizadas -->
+    <div id="floating-taskbar" class="floating-taskbar">
+      <button id="min-pill-terminal" class="min-pill hidden"><i data-lucide="terminal"></i><span>Terminal Ejecución</span></button>
+      <button id="min-pill-diagram" class="min-pill hidden"><i data-lucide="workflow"></i><span>Diagrama Flujo</span></button>
+    </div>
   </div>
   <dialog id="settings-dialog" class="settings-dialog"><div class="dialog-header"><div><span class="eyebrow">HECHO A TU MEDIDA</span><h1>Tu espacio, tus reglas.</h1></div><button data-close="settings-dialog" class="icon-button" aria-label="Cerrar ajustes"><i data-lucide="x"></i></button></div><div class="settings-tabs"><button data-settings-tab="appearance" class="active">Apariencia</button><button data-settings-tab="editor">Editor</button><button data-settings-tab="ai">Inteligencia artificial</button></div><div class="settings-content">
-    <section id="settings-appearance"><label class="field-label">Tema de color <span>El ambiente de tus ideas.</span></label><div id="theme-grid" class="theme-grid"></div><div class="settings-row"><label>Tipografía del editor<select id="font-family"><option value="Comic Mono">Comic Mono</option><option value="Consolas">Consolas</option><option value="Cascadia Code">Cascadia Code</option><option value="Courier New">Courier New</option></select></label><button id="import-font" class="secondary"><i data-lucide="type"></i>Añadir fuente…</button></div><p class="muted">Comic Mono viene incluida. Puedes importar archivos TTF, OTF o WOFF2.</p><div class="settings-row"><label>Tamaño de fuente <output id="font-size-label">16 px</output><input id="font-size" type="range" min="11" max="28" step="1" /></label><label>Interlineado <output id="line-height-label">1.7</output><input id="line-height" type="range" min="1.2" max="2.2" step="0.1" /></label></div><div class="settings-row"><label>Color de acento<input id="accent-color" type="color" value="#b9a3ff" /></label><label class="check-label"><input id="ligatures" type="checkbox" />Ligaduras (si la fuente las admite)</label></div></section>
+    <section id="settings-appearance">
+      <label class="field-label">Modo de Interfaz <span>Elige tu estilo de trabajo y comodidad.</span></label>
+      <div class="ui-mode-cards">
+        <label class="ui-mode-card" data-mode-choice="modern">
+          <input type="radio" name="pref-ui-mode" value="modern" checked>
+          <div class="ui-mode-card-content">
+            <span class="ui-mode-card-title"><i data-lucide="sparkles"></i> Moderna Studio</span>
+            <span class="ui-mode-card-desc">Diseño oscuro, cómodo y espacioso estilo VS Code moderno.</span>
+          </div>
+        </label>
+        <label class="ui-mode-card" data-mode-choice="classic-pseint">
+          <input type="radio" name="pref-ui-mode" value="classic-pseint">
+          <div class="ui-mode-card-content">
+            <span class="ui-mode-card-title"><i data-lucide="layout-grid"></i> Clásica PSeInt Original</span>
+            <span class="ui-mode-card-desc">Apariencia clásica idéntica a PSeInt con ventanas flotantes y fondo claro.</span>
+          </div>
+        </label>
+        <label class="ui-mode-card" data-mode-choice="classic-studio">
+          <input type="radio" name="pref-ui-mode" value="classic-studio">
+          <div class="ui-mode-card-content">
+            <span class="ui-mode-card-title"><i data-lucide="monitor"></i> Clásica PseudoStudio</span>
+            <span class="ui-mode-card-desc">Diseño compacto previo original de PseudoStudio.</span>
+          </div>
+        </label>
+      </div>
+      <div class="settings-row">
+        <label class="check-label"><input id="pref-floating-terminal" type="checkbox" />Abrir ejecución en ventana flotante independiente por defecto</label>
+        <label class="check-label"><input id="pref-floating-diagram" type="checkbox" />Abrir diagrama en ventana flotante independiente por defecto</label>
+      </div>
+      <label class="field-label">Tema de color <span>El ambiente de tus ideas.</span></label><div id="theme-grid" class="theme-grid"></div><div class="settings-row"><label>Tipografía del editor<select id="font-family"><option value="Comic Mono">Comic Mono</option><option value="Consolas">Consolas</option><option value="Cascadia Code">Cascadia Code</option><option value="Courier New">Courier New</option></select></label><button id="import-font" class="secondary"><i data-lucide="type"></i>Añadir fuente…</button></div><p class="muted">Comic Mono viene incluida. Puedes importar archivos TTF, OTF o WOFF2.</p><div class="settings-row"><label>Tamaño de fuente <output id="font-size-label">16 px</output><input id="font-size" type="range" min="11" max="28" step="1" /></label><label>Interlineado <output id="line-height-label">1.7</output><input id="line-height" type="range" min="1.2" max="2.2" step="0.1" /></label></div><div class="settings-row"><label>Color de acento<input id="accent-color" type="color" value="#b9a3ff" /></label><label class="check-label"><input id="ligatures" type="checkbox" />Ligaduras (si la fuente las admite)</label></div></section>
     <section id="settings-editor" class="hidden">
       <label class="check-label"><input id="minimap" type="checkbox" />Mostrar minimapa</label>
       <label class="check-label"><input id="sticky-scroll" type="checkbox" />Scroll fijo de funciones (Sticky Scroll estilo VS Code)</label>
