@@ -1,10 +1,10 @@
 // Floating Window Manager (MDI - Multiple Document Interface / Ventanas Independientes)
-export function createWindowManager({ onDockChange, onDiagramLine }) {
+export function createWindowManager({ onDockChange, onDiagramLine, onDiagramClose } = {}) {
   const $ = id => document.getElementById(id);
   
   const defaultState = {
-    terminal: { floating: false, x: 140, y: 200, width: 720, height: 420, minimized: false, maximized: false },
-    diagram: { floating: false, x: 220, y: 90, width: 860, height: 560, minimized: false, maximized: false }
+    terminal: { floating: false, x: 180, y: 180, width: 680, height: 380, minimized: false, maximized: false },
+    diagram: { floating: false, x: 220, y: 80, width: 820, height: 540, minimized: false, maximized: false }
   };
 
   let saved = {};
@@ -13,8 +13,8 @@ export function createWindowManager({ onDockChange, onDiagramLine }) {
   } catch {}
 
   const state = {
-    terminal: { ...defaultState.terminal, ...saved.terminal },
-    diagram: { ...defaultState.diagram, ...saved.diagram }
+    terminal: { ...defaultState.terminal, ...saved.terminal, floating: false, minimized: false, maximized: false },
+    diagram: { ...defaultState.diagram, ...saved.diagram, floating: false, minimized: false, maximized: false }
   };
 
   let zCounter = 1000;
@@ -376,8 +376,8 @@ export function createWindowManager({ onDockChange, onDiagramLine }) {
     $('float-terminal-max')?.addEventListener('click', () => toggleMaximize('terminal'));
     $('float-terminal-close')?.addEventListener('click', () => {
       $('float-win-terminal')?.classList.add('hidden');
-      state.terminal.minimized = true;
-      applyWindowPos('terminal');
+      state.terminal.minimized = false;
+      $('min-pill-terminal')?.classList.add('hidden');
       persist();
     });
 
@@ -386,14 +386,15 @@ export function createWindowManager({ onDockChange, onDiagramLine }) {
     $('float-diagram-max')?.addEventListener('click', () => toggleMaximize('diagram'));
     $('float-diagram-close')?.addEventListener('click', () => {
       $('float-win-diagram')?.classList.add('hidden');
-      if (typeof options.onDiagramClose === 'function') {
-        options.onDiagramClose();
+      state.diagram.minimized = false;
+      $('min-pill-diagram')?.classList.add('hidden');
+      if (typeof onDiagramClose === 'function') {
+        onDiagramClose();
       } else {
+        dockDiagram();
         $('diagram-view')?.classList.add('hidden');
         $('editor')?.classList.remove('hidden');
       }
-      state.diagram.minimized = true;
-      applyWindowPos('diagram');
       persist();
     });
 

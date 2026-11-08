@@ -223,7 +223,7 @@ export function createDiagrams({ api, getDocument, getProfile, onProblems, onLin
     if (!bar) return;
     bar.innerHTML = `
       <div class="diagram-bar-intro">
-        <span class="diagram-bar-title"><i data-lucide="plus-circle"></i> Insertar comandos:</span>
+        <span class="diagram-bar-title"><i data-lucide="plus-circle"></i> Insertar:</span>
         <span class="diagram-bar-hint">Haz clic o arrastra al flujograma</span>
       </div>
       <div class="diagram-bar-buttons">

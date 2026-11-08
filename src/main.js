@@ -299,6 +299,7 @@ function newDocument({ name = `algoritmo${counter++}.psc`, content = 'Algoritmo 
   });
   documents.push(doc);
   if (activateNow) activate(doc);
+  else renderFiles();
   return doc;
 }
 
@@ -346,15 +347,19 @@ function activate(doc) {
 
 function renderFiles() {
   const isDiagram = diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible();
+  const isDockedDiagram = isDiagram && !(windowManager && windowManager.isDiagramFloating());
+  const bc = document.querySelector('.breadcrumbs');
+  if (bc) bc.classList.toggle('hidden', isDockedDiagram);
+
   let tabsHtml = documents.map(d => {
     const isCurrent = d === current;
-    if (isCurrent && isDiagram) {
+    if (isCurrent && isDockedDiagram) {
       return `<div class="tab file-tab inactive-while-diagram" role="tab" aria-selected="false" data-doc="${d.id}" title="Código fuente: ${esc(d.name)} · Haz clic para volver al editor">${icon('file-code-2')}<span>${esc(d.name)}</span><span class="tab-code-tag">Código</span><button data-close-doc="${d.id}" title="Cerrar archivo" aria-label="Cerrar ${esc(d.name)}">${isDirty(d) ? '<span class="unsaved">•</span>' : icon('x')}</button></div>`;
     }
     return `<div class="tab ${isCurrent ? 'active' : ''}" role="tab" aria-selected="${isCurrent}" data-doc="${d.id}">${icon('file-code-2')}<span>${esc(d.name)}</span><button data-close-doc="${d.id}" title="Cerrar archivo" aria-label="Cerrar ${esc(d.name)}">${isDirty(d) ? '<span class="unsaved">•</span>' : icon('x')}</button></div>`;
   }).join('');
 
-  if (isDiagram && current) {
+  if (isDockedDiagram && current) {
     tabsHtml += `<div class="tab diagram-tab active" role="tab" aria-selected="true" id="diagram-active-tab" title="Flujograma de ${esc(current.name)} · Haz clic para volver al código">${icon('workflow')}<span class="diagram-tab-title">Diagrama: ${esc(current.name)}</span><span class="diagram-tab-badge">FLUX</span><button id="close-diagram-tab" title="Volver al código (Esc)" aria-label="Volver al código">${icon('x')}</button></div>`;
   }
 
@@ -423,6 +428,7 @@ async function renderProject() {
   $('project-name').textContent = project?.name || 'SIN CARPETA';
   $('project-name').title = project?.path || '';
   for (const id of ['project-file','project-folder','project-refresh','project-close']) $(id).disabled = !project;
+  $('project-file')?.parentElement?.classList.toggle('hidden', !project);
   applySections();
   if (!owner) { $('project-tree').innerHTML = '<button id="project-empty" class="secondary wide">Abrir carpeta…</button>'; return; }
   async function branch(relative, depth) {
@@ -749,14 +755,25 @@ function setUiMode(mode) {
   const prevMode = settings.uiMode;
   settings.uiMode = mode;
   if (mode === 'classic-pseint') {
-    settings.floatingTerminal = true;
-    settings.floatingDiagram = true;
-    if (!windowManager.isTerminalFloating()) windowManager.popoutTerminal();
-  } else if (prevMode === 'classic-pseint') {
-    if (settings.theme === 'pseint-classic') settings.theme = 'obsidian';
+    // En modo clásico PSeInt las ventanas flotantes se abren cuando se ejecuta (F5) o se abre diagrama (F7)
+  } else {
+    if (prevMode === 'classic-pseint' && settings.theme === 'pseint-classic') {
+      settings.theme = 'obsidian';
+    }
+    if (!settings.floatingTerminal && windowManager.isTerminalFloating()) {
+      windowManager.dockTerminal();
+    }
+    if (!settings.floatingDiagram && windowManager.isDiagramFloating()) {
+      windowManager.dockDiagram();
+      if (diagrams && typeof diagrams.isVisible === 'function' && diagrams.isVisible()) {
+        $('editor')?.classList.add('hidden');
+        $('diagram-view')?.classList.remove('hidden');
+      }
+    }
   }
   applySettings();
   syncSettingsForm();
+  renderFiles();
   toast('Modo de interfaz: ' + (mode === 'modern' ? 'Moderna Studio' : mode === 'classic-pseint' ? 'Clásica PSeInt' : 'Clásica Studio'));
 }
 
@@ -1314,14 +1331,10 @@ if ($('extension-search')) {
     renderExtensions();
   };
 }
+// El nombre de usuario se solicita directamente en el diálogo de Aula en Vivo sin bloquear el inicio
 const storedUser = localStorage.getItem('pseudostudio_username');
-if (!storedUser) {
-  setTimeout(() => {
-    if ($('username-dialog') && !document.querySelector('dialog[open]')) {
-      $('username-dialog').showModal();
-      if ($('username-prompt-input')) $('username-prompt-input').focus();
-    }
-  }, 800);
+if (storedUser) {
+  liveManager.setUsername(storedUser);
 }
 
 if ($('username-prompt-save')) {
@@ -1499,10 +1512,10 @@ FinAlgoritmo
 FinAlgoritmo
 `;
 
-  newDocument({ name: 'Guia_PseudoStudio.psc', content: guideCode, pristine: true }, false);
   newDocument({ name: 'sin_titulo.psc', content: emptyCode, pristine: true }, true);
+  newDocument({ name: 'Guia_PseudoStudio.psc', content: guideCode, pristine: true }, false);
 }
-const active = documents.find(d => d.id === drafts.active) || documents[documents.length - 1] || documents[0]; if (active) activate(active);
+const active = documents.find(d => d.id === drafts.active) || documents[0]; if (active) activate(active);
 
 applySettings();
 applySections();

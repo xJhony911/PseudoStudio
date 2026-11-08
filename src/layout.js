@@ -5,11 +5,11 @@ export function createLayout() {
     terminal: true,
     ai: false,
     commands: true,
-    sidebarWidth: 227,
-    commandsWidth: 195,
-    aiWidth: 330,
-    terminalHeight: 230,
-    terminalWidth: 380,
+    sidebarWidth: 205,
+    commandsWidth: 190,
+    aiWidth: 310,
+    terminalHeight: 165,
+    terminalWidth: 360,
     side: 'left',
     dock: 'bottom'
   };

@@ -45,8 +45,8 @@
   user-select: none;
 }
 .commands-heading {
-  height: 48px;
-  padding: 0 14px;
+  height: 38px;
+  padding: 0 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -57,38 +57,38 @@
 .commands-title {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.1px;
   color: var(--accent);
 }
 .commands-title svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 .commands-header-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 .commands-search-box {
-  padding: 8px 10px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 .commands-search-box svg {
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   color: var(--muted);
   flex-shrink: 0;
 }
 .commands-search-box input {
   width: 100%;
-  padding: 4px 7px;
+  padding: 3px 6px;
   font-size: 11px;
   background: transparent;
   border: 1px solid var(--border);
@@ -100,19 +100,19 @@
   outline: none;
 }
 .commands-hint-bar {
-  padding: 6px 12px;
-  font-size: 10px;
+  padding: 4px 10px;
+  font-size: 9.5px;
   color: var(--muted);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 6px;
-  line-height: 1.3;
+  gap: 5px;
+  line-height: 1.2;
 }
 .commands-hint-bar svg {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   flex-shrink: 0;
   color: var(--accent);
 }
@@ -120,30 +120,31 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 5px;
   scrollbar-gutter: stable;
 }
 .command-card {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 7px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
   cursor: grab;
-  transition: all 0.15s ease;
+  transition: all 0.14s ease;
   user-select: none;
 }
 .command-card:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px #00000028;
+  transform: translateX(-1px);
+  box-shadow: 0 3px 10px #00000024;
 }
 .command-card:active {
   cursor: grabbing;
@@ -154,28 +155,23 @@
   border-color: var(--accent);
 }
 .command-card-drag-hint {
-  position: absolute;
-  top: 5px;
-  right: 7px;
-  font-size: 11px;
-  color: var(--muted);
-  opacity: 0.5;
-  line-height: 1;
-  letter-spacing: -1px;
+  display: none;
 }
 .command-icon-box {
   background: #ffffff;
   border-radius: 4px;
-  padding: 4px;
+  padding: 2px 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  box-shadow: inset 0 0 0 1px #00000015;
+  width: 64px;
+  height: 38px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px #00000018;
 }
 .command-diagram-img {
   max-width: 100%;
-  max-height: 44px;
+  max-height: 34px;
   object-fit: contain;
   display: block;
   pointer-events: none;
@@ -184,6 +180,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 .command-card-title-row {
   display: flex;
@@ -195,22 +193,21 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .command-card-badge {
-  font-size: 9px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  display: none;
 }
 .command-card-desc {
   font-size: 10px;
   color: var(--muted);
-  line-height: 1.3;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .commands-empty {
   padding: 20px 10px;
@@ -1491,44 +1488,56 @@ body.window-resizing, body.window-resizing * {
    HEADER COMPACTO UNIFICADO (Barra Ergonómica de Herramientas)
    ========================================================= */
 .app-header-compact {
-  height: 42px;
+  height: 40px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 14px;
+  padding-left: 10px;
   -webkit-app-region: drag;
   background: var(--bg);
   position: relative;
   z-index: 50;
+  gap: 6px;
 }
 .app-header-compact button,
 .app-header-compact select,
 .app-header-compact .ui-mode-wrap {
   -webkit-app-region: no-drag;
 }
+.app-header-compact .preview-badge {
+  display: none;
+}
+.app-header-compact .brand {
+  gap: 7px;
+  flex-shrink: 0;
+}
+.app-header-compact .brand-logo {
+  width: 24px;
+  height: 24px;
+}
+.app-header-compact .brand b {
+  font-size: 13.5px;
+}
 .header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
   flex: 1;
 }
-.header-left .brand {
-  flex-shrink: 0;
-}
 .header-divider {
-  height: 18px;
+  height: 16px;
   width: 1px;
   background: var(--border);
-  margin: 0 4px;
+  margin: 0 2px;
   flex-shrink: 0;
 }
 .toolbar-tools {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1536,32 +1545,46 @@ body.window-resizing, body.window-resizing * {
   display: none;
 }
 .toolbar-tools button {
-  height: 28px;
-  padding: 0 8px;
-  font-size: 11.5px;
+  height: 26px;
+  padding: 0 5px;
+  font-size: 11px;
+  gap: 4px;
   color: var(--muted);
   border-radius: 4px;
   flex-shrink: 0;
   white-space: nowrap;
 }
-.toolbar-tools button:hover {
+.toolbar-tools button:hover,
+.toolbar-tools button.active {
   background: var(--accent-soft);
   color: var(--accent);
 }
 .toolbar-tools button svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
+}
+/* En resoluciones de portátil o escritorio estándar, Vista y Formatear son iconos limpios con tooltip */
+@media (max-width: 1500px) {
+  #layout-open span,
+  #format-code span {
+    display: none;
+  }
+  #layout-open,
+  #format-code {
+    padding: 0 5px;
+    width: 26px;
+  }
 }
 .header-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
   height: 100%;
 }
 .command-search-icon {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 5px;
   color: var(--muted);
 }
@@ -1570,13 +1593,14 @@ body.window-resizing, body.window-resizing * {
   color: var(--accent);
 }
 .command-search-icon svg {
-  width: 15px;
-  height: 15px;
+  width: 13.5px;
+  height: 13.5px;
 }
 .icon-text-btn {
-  height: 28px;
-  padding: 0 8px;
-  font-size: 11.5px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+  gap: 4px;
   color: var(--muted);
 }
 .icon-text-btn:hover {
@@ -1585,9 +1609,29 @@ body.window-resizing, body.window-resizing * {
 }
 .header-right select {
   font-size: 11px;
-  padding: 4px 7px;
+  padding: 2px 4px;
   background: transparent;
   color: var(--muted);
+  height: 26px;
+}
+.app-header-compact .ui-mode-wrap {
+  padding: 0 5px;
+  height: 26px;
+  gap: 4px;
+}
+.app-header-compact .ui-mode-wrap select {
+  font-size: 11px;
+  padding: 2px 2px;
+}
+.app-header-compact .run-button {
+  height: 26px;
+  padding: 0 9px !important;
+  font-size: 11px;
+  gap: 4px;
+  margin-left: 1px;
+}
+.app-header-compact .window-buttons button {
+  width: 34px;
 }
 
 /* Adaptaciones de skins para header compacto */
@@ -1619,8 +1663,8 @@ body.window-resizing, body.window-resizing * {
   color: #1a1a1a;
   border-radius: 3px;
   font-size: 11px;
-  padding: 2px 7px;
-  height: 26px;
+  padding: 2px 5px;
+  height: 25px;
 }
 .ui-mode-classic-pseint .toolbar-tools button:hover,
 .ui-mode-classic-pseint .icon-text-btn:hover,
@@ -1636,6 +1680,118 @@ body.window-resizing, body.window-resizing * {
   background: #ffffff;
   border: 1px solid #b8b5a8;
   color: #1a1a1a;
+}
+
+/* =========================================================
+   REFINAMIENTO VISUAL DE PANELES, DIAGRAMA Y VENTANAS FLOTANTES
+   ========================================================= */
+/* Ocultar controles redundantes cuando un panel está dentro de una ventana flotante */
+.floating-win-body #panel-popout,
+.floating-win-body #panel-maximize,
+.floating-win-body #panel-hide,
+.floating-win-body #flow-popout,
+.floating-win-body #flow-code {
+  display: none !important;
+}
+
+/* Barra de diagrama limpia en una sola línea y legible en todas las skins */
+.diagram-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 5px 8px !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.diagram-toolbar::-webkit-scrollbar {
+  display: none;
+}
+.diagram-toolbar button,
+.diagram-toolbar select {
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: var(--text);
+  padding: 3px 6px !important;
+  font-size: 10.5px !important;
+}
+.diagram-toolbar #flow-process {
+  max-width: 165px;
+}
+.diagram-toolbar #flow-style {
+  max-width: 145px;
+}
+.ui-mode-classic-pseint .diagram-toolbar button {
+  background: linear-gradient(180deg, #ffffff 0%, #ece9d8 100%);
+  border: 1px solid #b8b5a8;
+  color: #1a1a1a;
+  border-radius: 3px;
+}
+.ui-mode-classic-pseint .diagram-toolbar button:hover {
+  background: #ffffff;
+  border-color: #003399;
+  color: #003399;
+}
+.ui-mode-classic-pseint .diagram-command-bar {
+  background: #f4f3ec !important;
+  border-bottom: 1px solid #b8b5a8;
+}
+.diagram-command-bar {
+  padding: 4px 8px !important;
+  gap: 6px !important;
+}
+.diagram-cmd-btn {
+  padding: 3px 6px !important;
+  gap: 4px !important;
+  font-size: 10.5px !important;
+}
+.diagram-bar-hint {
+  display: none;
+}
+#flow-status {
+  margin: 5px 14px !important;
+  font-size: 10.5px !important;
+}
+.diagram-legend {
+  padding: 5px 14px !important;
+  font-size: 9.5px !important;
+}
+
+/* Terminal más limpia y equilibrada en reposo */
+.panel-header {
+  height: 34px !important;
+  padding: 0 12px !important;
+}
+.panel-body {
+  padding: 10px 16px !important;
+}
+.terminal-welcome {
+  min-height: 60px !important;
+  gap: 12px !important;
+}
+.terminal-logo {
+  width: 34px !important;
+  height: 34px !important;
+  font-size: 16px !important;
+}
+.side-heading {
+  height: 36px !important;
+  padding: 0 12px !important;
+}
+.tabs {
+  height: 35px !important;
+}
+.breadcrumbs {
+  height: 26px !important;
+  padding: 0 14px !important;
+}
+.sidebar-tip {
+  margin: auto 10px 12px !important;
+  padding: 11px 11px !important;
 }
 
 /* Resaltado dinámico al arrastrar comandos en el diagrama de flujo */

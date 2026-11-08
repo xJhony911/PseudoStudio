@@ -688,6 +688,30 @@ export function createLiveManager({
     broadcastTerminalClear,
     broadcastSave,
     onCursorChange,
+    onDocumentChange(doc) {
+      if (state.role === 'host' && doc && !isReceivingRemoteEdit) {
+        const content = doc.model ? doc.model.getValue() : (doc.content || '');
+        broadcast({
+          type: 'code-update',
+          fileName: doc.name,
+          code: content,
+          cursor: editor ? editor.getPosition() : null,
+          selection: editor ? editor.getSelection() : null
+        });
+      }
+    },
+    onDocContentChange(doc) {
+      if (state.role === 'host' && doc && !isReceivingRemoteEdit) {
+        const content = doc.model ? doc.model.getValue() : (doc.content || '');
+        broadcast({
+          type: 'code-update',
+          fileName: doc.name,
+          code: content,
+          cursor: editor ? editor.getPosition() : null,
+          selection: editor ? editor.getSelection() : null
+        });
+      }
+    },
     broadcastRunState(runState) {
       if (state.role === 'host') {
         broadcast({ type: 'run-state', ...runState });
